@@ -1,0 +1,254 @@
+{
+  "tutorials": [
+    {
+      "id": "async-collaboration",
+      "title": "Learn How Collaboration Works",
+      "description": "A complete guide to async collaboration, inline comments, mentions, and preparing for live co-editing. Understand what each subscription tier unlocks.",
+      "readingTime": "6 min read",
+      "publishedAt": "March 2025",
+      "sections": [
+        {
+          "title": "Understanding Collaboration Tiers",
+          "content": [
+            "Collaboration features are tiered to match different team needs. Free and Starter users can view all existing comments and activity logs, making it easy to see what feedback has been given, but cannot create new comment threads. This keeps the writing surface calm for solo drafts while still allowing you to review team feedback.",
+            "Pro tier introduces powerful async collaboration tools: analytics, version history, and async review preparation. You can see all collaboration activity, track changes, and prepare documents for review—but real-time inline commenting remains locked. This tier is perfect for writers who want to track their work and prepare for team review without the distraction of live comments.",
+            "Unlimited is the full collaboration tier. It unlocks everything: inline comments, @mentions, live cursors, presence indicators, section locking, and access to the upcoming live co-editing roadmap. This tier is designed for teams that need real-time collaboration and seamless feedback loops."
+          ],
+          "tips": [
+            "Free users can still benefit from viewing comments left by Unlimited team members",
+            "Pro users get the best of both worlds: async review prep without live comment distractions",
+            "Unlimited is essential for teams doing simultaneous editing and real-time feedback"
+          ]
+        },
+        {
+          "title": "Getting Started with Inline Comments",
+          "content": [
+            "Inline comments are the foundation of async collaboration. Available to Unlimited users, they allow you to leave feedback directly anchored to specific text passages. To create a comment, simply select any text in the Generator workspace—a comment icon will appear in the selection menu.",
+            "Click the comment icon to open the comment thread. You can type your feedback, mention teammates using @handle syntax, and add context about what needs to change. Comments are automatically saved and visible to all team members with access to the project.",
+            "Each comment thread supports replies, creating nested discussions about specific sections. This makes it easy to have detailed conversations about plot points, character development, or writing style without cluttering the main document. You can resolve comments when they've been addressed, keeping your workspace organized."
+          ],
+          "tips": [
+            "Use comments to capture ideas that don't fit in the main narrative flow",
+            "Tag team members with @mentions to ensure they see important feedback",
+            "Resolve comments when addressed to keep your workspace clean and focused"
+          ]
+        },
+        {
+          "title": "Using @Mentions and Notifications",
+          "content": [
+            "The @mention system lets you notify specific team members about comments or sections that need their attention. When you type @ followed by a teammate's handle, they'll receive a notification about your comment, even if they're not currently viewing the document.",
+            "Mentions work across all collaboration features. You can mention someone in a comment, in a selection capture, or when creating a version label. This ensures important feedback doesn't get missed, especially in large documents with many comments.",
+            "Each user has a unique handle that's displayed in the collaboration panel. You can see all active participants and their handles, making it easy to know who to mention for specific types of feedback."
+          ],
+          "tips": [
+            "Use @mentions sparingly—only tag people when their input is truly needed",
+            "Check the collaboration panel to see who's currently active before mentioning",
+            "Mentions work even when teammates are offline—they'll see notifications when they return"
+          ]
+        },
+        {
+          "title": "Capturing Selections for Review",
+          "content": [
+            "Selection capture is a powerful way to highlight specific passages that need attention. When you select text and create a comment, that selection is automatically saved to the activity timeline, creating a clear record of what was discussed.",
+            "The activity timeline shows all collaboration events in chronological order: comments, locks, selections, and version changes. This gives you a complete picture of how the story evolved through team collaboration, making it easy to track the feedback loop from initial comment to final revision.",
+            "Free and Starter users can view the entire activity timeline, giving them full visibility into collaboration history even if they can't create new comments. This transparency helps everyone understand how the story developed."
+          ]
+        },
+        {
+          "title": "Section Locking and Conflict Prevention",
+          "content": [
+            "Section locking prevents conflicts during async editing. When someone is actively editing a section, it's automatically locked to other users, preventing simultaneous changes that could cause confusion or data loss.",
+            "Locks are visible in the collaboration panel, showing who's working on which section. You can see locks in real-time, helping you coordinate async work and avoid stepping on each other's edits.",
+            "Locks expire automatically after a period of inactivity, ensuring they don't block other team members indefinitely. If you need to edit a locked section, you can request access or wait for the lock to expire naturally."
+          ],
+          "tips": [
+            "Locks are automatic—you don't need to manually lock sections",
+            "Check the collaboration panel before starting major edits to see what's locked",
+            "Locks expire after 5 minutes of inactivity to keep workflow smooth"
+          ]
+        },
+        {
+          "title": "Presence Indicators and Live Cursors",
+          "content": [
+            "Presence indicators show who's currently viewing the document, even if they're not actively editing. This visibility helps coordinate async work and sets the foundation for live collaboration.",
+            "Each active participant appears in the collaboration panel with their name, avatar, and current section. You can see where everyone is in the document, making it easier to coordinate edits and avoid conflicts.",
+            "Live cursors (coming soon) will show exactly where each team member is working in real-time, enabling true simultaneous editing. The current async features prepare you for this by establishing good collaboration habits now."
+          ]
+        },
+        {
+          "title": "Preparing for Live Co-Editing",
+          "content": [
+            "While live co-editing is still on the roadmap, the current async collaboration features prepare you for the upcoming real-time editing experience. By establishing good commenting habits, using @mentions effectively, and understanding section locking, your team will be ready to take advantage of live cursors and simultaneous editing when it launches.",
+            "The collaboration panel and activity timeline provide the foundation for live collaboration. When live co-editing arrives, these features will seamlessly integrate with real-time editing, giving you the best of both async and sync collaboration.",
+            "Start using async collaboration now to build team workflows and establish communication patterns. Teams that master async collaboration will have a smooth transition to live co-editing when it becomes available."
+          ],
+          "tips": [
+            "Establish clear commenting conventions with your team before starting",
+            "Use the activity timeline to track all collaboration events",
+            "Review resolved comments periodically to ensure nothing was missed",
+            "Practice good async collaboration now to prepare for live co-editing"
+          ]
+        }
+      ],
+      "relatedArticles": ["version-branching", "character-encyclopedia"]
+    },
+    {
+      "id": "character-encyclopedia",
+      "title": "How to Build a Character Encyclopedia",
+      "description": "Create a comprehensive knowledge base of characters, locations, and artifacts that can be reused across multiple projects with AI-powered suggestions.",
+      "readingTime": "5 min read",
+      "publishedAt": "March 2025",
+      "sections": [
+        {
+          "title": "Setting Up Your Knowledge Base",
+          "content": [
+            "The Knowledge Dock is your central repository for all story elements—characters, locations, artifacts, and world-building details. To get started, open the Context Drawer in the Generator workspace and navigate to the Knowledge section.",
+            "Each knowledge entry can include a name, description, category, and tags. This metadata helps the AI understand context and suggest relevant entries when you're writing. For example, when you mention a character name, the AI can automatically pull in their description and relationships.",
+            "Knowledge entries are project-specific by default, but Pro and Unlimited users can discover entries from other projects. This makes it easy to maintain consistency across a series or shared universe."
+          ],
+          "tips": [
+            "Start with main characters and locations, then expand to supporting elements",
+            "Use consistent naming conventions to help the AI match entries",
+            "Add relationships between characters to enable richer context suggestions"
+          ]
+        },
+        {
+          "title": "Pinning and Reusing Knowledge",
+          "content": [
+            "When you pin a knowledge entry to your current project, it becomes available for AI suggestions throughout your writing session. The AI will automatically reference pinned knowledge when generating or continuing text, ensuring consistency with your established world.",
+            "You can pin multiple entries at once, and the system will intelligently suggest which ones are most relevant based on the current context. This reduces the need to manually reference your knowledge base while writing.",
+            "Pinned knowledge syncs automatically across devices and sessions. Even if you're working offline, your pinned entries remain available, and any edits are pushed to the cloud once you reconnect."
+          ]
+        },
+        {
+          "title": "Building Character Relationships",
+          "content": [
+            "Beyond individual character descriptions, you can define relationships between characters in your knowledge base. These relationships help the AI understand character dynamics and suggest appropriate interactions.",
+            "For example, if you've defined that Character A is the mentor of Character B, the AI will naturally write their interactions with that dynamic in mind. This creates more consistent and believable character interactions throughout your story.",
+            "The Character Relationship Graph (available in Pro and Unlimited tiers) visualizes these connections, making it easy to see the full network of relationships in your story universe."
+          ],
+          "tips": [
+            "Define relationships early to establish clear character dynamics",
+            "Update relationships as your story evolves",
+            "Use the relationship graph to identify potential story connections"
+          ]
+        },
+        {
+          "title": "Bulk Import and Organization",
+          "content": [
+            "If you have an existing character list or world-building document, you can import it in bulk. The Knowledge Dock supports importing from structured formats, making it easy to migrate existing content.",
+            "Use categories and tags to organize your knowledge base. Categories like 'Characters', 'Locations', 'Magic Systems' help you quickly find relevant entries, while tags allow for more flexible cross-referencing.",
+            "Regular maintenance of your knowledge base pays off. As you add more entries and relationships, the AI becomes better at suggesting relevant context and maintaining consistency across your writing."
+          ]
+        }
+      ],
+      "relatedArticles": ["async-collaboration", "analytics-playbook"]
+    },
+    {
+      "id": "version-branching",
+      "title": "Version History & Branching Tips",
+      "description": "Learn how to capture every draft, create branch timelines, and merge alternate versions when you find a better narrative direction.",
+      "readingTime": "4 min read",
+      "publishedAt": "March 2025",
+      "sections": [
+        {
+          "title": "Understanding Version Snapshots",
+          "content": [
+            "Version History automatically captures snapshots of your project at key moments—when you save, when you create a new chapter, or when you manually create a version. Each snapshot preserves the complete state of your project, including all chapters, content, and metadata.",
+            "You can view all versions in the Version History Drawer, accessible from the Generator workspace. Each version shows when it was created, what changed, and includes a label if you provided one (e.g., 'First draft', 'After beta feedback').",
+            "Versions are stored efficiently, only saving the differences between snapshots. This means you can maintain extensive version history without consuming excessive storage space."
+          ],
+          "tips": [
+            "Create manual versions at major milestones (chapter completions, major revisions)",
+            "Use descriptive labels to make versions easy to find later",
+            "Review version history regularly to track your writing progress"
+          ]
+        },
+        {
+          "title": "Creating and Managing Branches",
+          "content": [
+            "Branches let you explore alternate story directions without losing your original work. To create a branch, select a version in the Version History Drawer and choose 'Create Branch'. This creates a new timeline starting from that point.",
+            "You can work on multiple branches simultaneously, switching between them to compare different narrative approaches. This is especially useful when you're unsure which direction to take a story or want to explore multiple endings.",
+            "Each branch maintains its own version history, so you can track how each alternate path evolved. The branch visualization shows how branches relate to each other and where they diverged from the main timeline."
+          ]
+        },
+        {
+          "title": "Merging Branches",
+          "content": [
+            "When you find a branch that works better than your main timeline, you can merge it back. Merging combines the best elements from both branches, allowing you to incorporate successful experiments into your main story.",
+            "The merge process shows you a diff view highlighting what changed between branches. You can review each change and decide whether to keep it, modify it, or discard it. This gives you full control over how branches combine.",
+            "After merging, the merged branch remains in your history, so you can always reference it later. The main timeline continues with the merged changes, creating a new version that incorporates the best of both paths."
+          ],
+          "tips": [
+            "Use branches to experiment with major plot changes",
+            "Compare branches side-by-side before merging",
+            "Keep experimental branches even after merging—they might inspire future stories"
+          ]
+        },
+        {
+          "title": "Best Practices for Version Management",
+          "content": [
+            "Create versions frequently during active writing sessions. This gives you more restore points if you need to backtrack, and helps you track your writing rhythm and productivity.",
+            "Use branches strategically for major decisions. Not every small change needs a branch—save branching for significant narrative divergences or experimental sections.",
+            "Regularly review and clean up old versions. While it's tempting to keep everything, pruning very old or redundant versions keeps your history manageable and makes it easier to find important snapshots."
+          ]
+        }
+      ],
+      "relatedArticles": ["async-collaboration", "analytics-playbook"]
+    },
+    {
+      "id": "analytics-playbook",
+      "title": "Make the Most of Writing Analytics",
+      "description": "Transform word-count trends, genre workload, and usage resets into actionable insights that inform your weekly writing plan.",
+      "readingTime": "6 min read",
+      "publishedAt": "March 2025",
+      "sections": [
+        {
+          "title": "Understanding Your Writing Metrics",
+          "content": [
+            "Writing Analytics (available in Pro and Unlimited tiers) tracks your writing activity across all projects. The dashboard shows total word count, words per day, active projects, and genre distribution.",
+            "These metrics help you understand your writing patterns. For example, you might discover that you write more productively in the morning, or that certain genres take longer to complete. This self-awareness helps you optimize your writing schedule.",
+            "The analytics also track your AI usage—how many generations you've used, what features you use most, and when your usage resets. This helps you plan your writing sessions to maximize your subscription value."
+          ],
+          "tips": [
+            "Check analytics weekly to track progress toward writing goals",
+            "Use genre distribution to identify your writing strengths",
+            "Monitor AI usage to avoid hitting limits mid-session"
+          ]
+        },
+        {
+          "title": "Setting and Tracking Goals",
+          "content": [
+            "You can set writing goals for individual projects or overall word count targets. The analytics dashboard shows your progress toward these goals, helping you stay motivated and on track.",
+            "Goals can be daily, weekly, or project-based. For example, you might set a goal to write 1,000 words per day, or to complete a specific chapter by the end of the week. The system tracks your progress and sends reminders to help you stay accountable.",
+            "Review your goal completion rate regularly. If you consistently miss goals, consider adjusting them to be more realistic. If you consistently exceed goals, you might be able to aim higher and increase your productivity."
+          ]
+        },
+        {
+          "title": "Analyzing Writing Trends",
+          "content": [
+            "The analytics dashboard includes trend analysis showing how your writing activity changes over time. You can see weekly patterns, monthly progress, and long-term trends that help you understand your writing rhythm.",
+            "Genre workload analysis shows how much time and effort you're investing in different story types. This helps you balance your creative portfolio and identify which genres you're most productive in.",
+            "Usage reset tracking shows when your monthly AI generation limits refresh. Plan your most intensive writing sessions around these resets to maximize your available generations."
+          ],
+          "tips": [
+            "Review trends monthly to identify patterns in your writing",
+            "Use genre analysis to diversify your creative output",
+            "Schedule major writing sessions after usage resets"
+          ]
+        },
+        {
+          "title": "Creating a Weekly Writing Plan",
+          "content": [
+            "Based on your analytics, create a weekly writing plan that aligns with your patterns and goals. If analytics show you write best in the morning, schedule your most important writing sessions then.",
+            "Factor in your AI usage limits when planning. If you're approaching your monthly limit, prioritize projects that need less AI assistance, or plan to upgrade if you consistently hit limits.",
+            "Use the analytics to identify your most productive days and times, then block those periods for writing. This data-driven approach helps you maximize both quality and quantity of output.",
+            "Regularly review and adjust your plan based on what the analytics reveal. Writing is a skill that improves with practice, and your patterns will evolve over time."
+          ]
+        }
+      ],
+      "relatedArticles": ["version-branching", "character-encyclopedia"]
+    }
+  ]
+}
+

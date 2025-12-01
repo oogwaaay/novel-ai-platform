@@ -1,0 +1,56 @@
+═══════════════════════════════════════════════════════
+  Novel AI 平台 - 快速检查清单
+═══════════════════════════════════════════════════════
+
+【第一步：检查 Node.js】
+□ 打开命令行（Win+R，输入 cmd）
+□ 输入：node --version
+□ 如果显示版本号 → ✅ 已安装
+□ 如果没有 → 去 https://nodejs.org/ 安装
+
+【第二步：获取 API Key】
+□ DeepSeek：https://platform.deepseek.com/ （推荐）
+□ 或 OpenAI：https://platform.openai.com/api-keys
+□ 复制 API Key（格式：sk-xxxxxxxxxxxxx）
+
+【第三步：安装依赖】
+□ 打开项目文件夹
+□ 在地址栏输入 cmd，按回车
+□ 输入：npm install（等待完成）
+□ 输入：cd backend
+□ 输入：npm install（等待完成）
+
+【第四步：创建配置文件】
+□ 打开 backend 文件夹
+□ 创建文件：.env
+□ 编辑文件，输入：
+  PORT=3001
+  DEEPSEEK_API_KEY=sk-你的密钥
+  JWT_SECRET=随便写个字符串
+
+【第五步：启动后端】
+□ 在 backend 文件夹打开命令行
+□ 输入：npm run dev
+□ 看到 "Server running on http://localhost:3001" → ✅
+
+【第六步：启动前端】
+□ 新开一个命令行窗口
+□ 在项目根目录
+□ 输入：npm run dev
+□ 看到 "Local: http://localhost:3000" → ✅
+
+【第七步：打开网站】
+□ 打开浏览器
+□ 访问：http://localhost:3000
+□ 看到网站界面 → ✅
+
+【第八步：测试】
+□ 点击 "AI Novel Generator"
+□ 填写故事想法（至少30字）
+□ 点击 "Generate Full Length Book"
+□ 看到生成的小说 → ✅ 成功！
+
+═══════════════════════════════════════════════════════
+  如果某一步出错，查看"详细启动步骤.md"
+═══════════════════════════════════════════════════════
+

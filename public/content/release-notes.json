@@ -1,0 +1,53 @@
+[
+  {
+    "id": "2025-03-10",
+    "date": "2025-03-10",
+    "title": "Phase 4 collaboration rollout",
+    "highlights": [
+      "Inline comments now ship for Unlimited users—select any passage in Generator and leave anchored feedback.",
+      "Async mode ensures comments still work when live sockets are unavailable; real-time co-editing remains on the roadmap.",
+      "Non-Unlimited tiers see explicit upgrade cards so the collaboration tier value is clear across the app."
+    ]
+  },
+  {
+    "id": "2025-03-03",
+    "date": "2025-03-03",
+    "title": "Knowledge workspace & analytics boost",
+    "highlights": [
+      "Knowledge Dock can now discover entries from other projects, apply category filters, and import in bulk.",
+      "Pinned knowledge syncs automatically even in offline sessions; edits are pushed to the cloud once you reconnect.",
+      "Dashboard upsell cards spotlight Writing Analytics + Version History so Starter users know what upgrades unlock."
+    ]
+  },
+  {
+    "id": "2025-02-15",
+    "date": "2025-02-15",
+    "title": "Template experience refresh",
+    "highlights": [
+      "Template cards display summaries directly on the cover and show one-tap Quick Start.",
+      "Category filters reflect only the genres in your library, and locked templates call out the required tier.",
+      "Recent templates promote the most-used configuration at the top of the grid."
+    ]
+  },
+  {
+    "id": "2025-02-08",
+    "date": "2025-02-08",
+    "title": "Usage limits & billing clarity",
+    "highlights": [
+      "Generation/continuation usage is now synced with the backend so monthly counters stay accurate.",
+      "Pricing includes structured data (JSON-LD) for better visibility on search engines."
+    ]
+  },
+  {
+    "id": "2025-01-26",
+    "date": "2025-01-26",
+    "title": "Workspace onboarding",
+    "highlights": [
+      "Flow Guide Drawer lets you skip configuration entirely or follow a gentle checklist.",
+      "Dashboard cards gained folders, tags, and quick actions so you can group related stories easily."
+    ]
+  }
+]
+
+
+

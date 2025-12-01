@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Novel AI - AI Novel Generator and Writer. Create complete novels with AI in minutes. Free AI novel generator for writers.">
+  <meta name="keywords" content="novel ai, ai novel generator, ai novel writer, novels about ai, ai story generator, ai book generator">
+  
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://novelai.io/">
+  <meta property="og:title" content="Novel AI - AI Novel Generator | Create Stories with AI">
+  <meta property="og:description" content="Generate complete novels with AI in minutes. Free AI novel generator for writers.">
+  
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:title" content="Novel AI - AI Novel Generator">
+  <meta property="twitter:description" content="Generate complete novels with AI in minutes.">
+  
+  <title>Novel AI - AI Novel Generator | Create Stories with AI</title>
+  <link rel="canonical" href="https://novelai.io/">
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#0f172a">
+</head>
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.tsx"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+          .then((registration) => {
+            console.log('Service Worker registered:', registration);
+          })
+          .catch((error) => {
+            console.error('Service Worker registration failed:', error);
+          });
+      });
+    }
+  </script>
+</body>
+</html>
+
