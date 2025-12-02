@@ -1,8 +1,10 @@
 {
   "compilerOptions": {
     "target": "ES2020",
-    "module": "ESNext",
+    "module": "CommonJS",
     "lib": ["ES2020"],
+    // 使用经典的 Node 模块解析，生成 CommonJS（require）代码，
+    // 这样运行时不需要在 import 路径上显式写 .js 后缀。
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
