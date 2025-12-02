@@ -173,8 +173,10 @@ export function updateTask(
   
   projectTasks.set(projectId, next);
 
-  if (updatedTask && useSupabase) {
-    const taskToSave = updatedTask as CollaborationTask;
+  // 创建明确的非空类型变量，避免异步闭包中的类型推断问题
+  const taskToSave: CollaborationTask = updatedTask;
+  
+  if (useSupabase) {
     (async () => {
       try {
         const patch: Partial<DbTaskRow> = {

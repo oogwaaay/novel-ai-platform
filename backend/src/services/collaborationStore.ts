@@ -169,8 +169,10 @@ export function updateProjectComment(
   }
   projectComments.set(projectId, next);
 
-  if (updatedComment && useSupabase) {
-    const commentToSave = updatedComment as ProjectComment;
+  // 创建明确的非空类型变量，避免异步闭包中的类型推断问题
+  const commentToSave: ProjectComment = updatedComment;
+  
+  if (useSupabase) {
     (async () => {
       try {
         const patch: Partial<DbCommentRow> = {
@@ -398,8 +400,10 @@ export function renewSectionLock(
   }
   projectLocks.set(projectId, next);
 
-  if (updatedLock && useSupabase) {
-    const lockToSave = updatedLock as SectionLock;
+  // 创建明确的非空类型变量，避免异步闭包中的类型推断问题
+  const lockToSave: SectionLock = updatedLock;
+  
+  if (useSupabase) {
     (async () => {
       try {
         const { error } = await supabaseAdmin!
@@ -442,7 +446,8 @@ export function releaseSectionLock(
   projectLocks.set(projectId, next);
 
   if (removed && useSupabase) {
-    const lockToDelete = removed as SectionLock;
+    // 创建明确的非空类型变量，避免异步闭包中的类型推断问题
+    const lockToDelete: SectionLock = removed;
     (async () => {
       try {
         const { error } = await supabaseAdmin!
