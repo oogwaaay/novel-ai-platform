@@ -62,9 +62,18 @@ async function handleResponse<T>(response: Response): Promise<T> {
     let message = 'Request failed';
     try {
       const error = await response.json();
-      message = error.message || error.error || message;
+      // 后端使用 express-validator 时会返回 { errors: [{ msg, param, ... }] }
+      if (Array.isArray(error?.errors) && error.errors.length > 0) {
+        message =
+          error.errors
+            .map((e: { msg?: string; message?: string }) => e.msg || e.message)
+            .filter(Boolean)
+            .join(' · ') || message;
+      } else {
+        message = error.message || error.error || message;
+      }
     } catch {
-      // ignore
+      // ignore JSON parse errors and fall back to default message
     }
     throw new Error(message);
   }

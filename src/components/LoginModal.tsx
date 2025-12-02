@@ -17,6 +17,22 @@ export default function LoginModal({ open, onClose, onSuccess }: LoginModalProps
   const [error, setError] = useState<string | null>(null);
   const [showPasswordReset, setShowPasswordReset] = useState(false);
 
+  const validatePassword = (value: string): string | null => {
+    if (value.length < 8) {
+      return 'Password must be at least 8 characters.';
+    }
+    if (!/[a-z]/.test(value)) {
+      return 'Password must contain at least one lowercase letter.';
+    }
+    if (!/[A-Z]/.test(value)) {
+      return 'Password must contain at least one uppercase letter.';
+    }
+    if (!/\d/.test(value)) {
+      return 'Password must contain at least one number.';
+    }
+    return null;
+  };
+
   if (!open) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -28,6 +44,12 @@ export default function LoginModal({ open, onClose, onSuccess }: LoginModalProps
       if (mode === 'login') {
         await login({ email, password });
       } else {
+        const passwordError = validatePassword(password);
+        if (passwordError) {
+          setError(passwordError);
+          setLoading(false);
+          return;
+        }
         await register({ email, password, name: name || undefined });
       }
       onSuccess?.();
@@ -100,10 +122,14 @@ export default function LoginModal({ open, onClose, onSuccess }: LoginModalProps
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              minLength={6}
               className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-200"
               placeholder="••••••••"
             />
+            {mode === 'register' && (
+              <p className="mt-1 text-xs text-slate-500">
+                At least 8 characters, including uppercase, lowercase, and a number.
+              </p>
+            )}
           </div>
 
           <button
