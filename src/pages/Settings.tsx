@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { fetchCurrentUser } from '../api/authApi';
 
 export default function Settings() {
   const { user, setUser, token } = useAuthStore();
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
@@ -156,12 +158,8 @@ export default function Settings() {
             <button
               type="button"
               onClick={() => {
-                setFormData({
-                  name: user.name || '',
-                  email: user.email || '',
-                  avatar: user.avatar || ''
-                });
-                setMessage(null);
+                // Cancel: leave settings page and go back to dashboard
+                navigate('/dashboard');
               }}
               className="px-6 py-2.5 border border-slate-300 text-slate-700 rounded-xl font-medium hover:bg-slate-50 transition"
             >
