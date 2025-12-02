@@ -170,7 +170,7 @@ export function updateProjectComment(
   projectComments.set(projectId, next);
 
   if (updatedComment && useSupabase) {
-    const commentToSave: ProjectComment = updatedComment; // Type assertion
+    const commentToSave = updatedComment as ProjectComment;
     (async () => {
       try {
         const patch: Partial<DbCommentRow> = {
@@ -399,7 +399,7 @@ export function renewSectionLock(
   projectLocks.set(projectId, next);
 
   if (updatedLock && useSupabase) {
-    const lockToSave: SectionLock = updatedLock; // Type assertion
+    const lockToSave = updatedLock as SectionLock;
     (async () => {
       try {
         const { error } = await supabaseAdmin!
@@ -442,7 +442,7 @@ export function releaseSectionLock(
   projectLocks.set(projectId, next);
 
   if (removed && useSupabase) {
-    const lockToDelete: SectionLock = removed; // Type assertion
+    const lockToDelete = removed as SectionLock;
     (async () => {
       try {
         const { error } = await supabaseAdmin!

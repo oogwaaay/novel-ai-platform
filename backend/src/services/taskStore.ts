@@ -174,7 +174,7 @@ export function updateTask(
   projectTasks.set(projectId, next);
 
   if (updatedTask && useSupabase) {
-    const taskToSave: CollaborationTask = updatedTask; // Type assertion
+    const taskToSave = updatedTask as CollaborationTask;
     (async () => {
       try {
         const patch: Partial<DbTaskRow> = {
