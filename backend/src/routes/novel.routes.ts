@@ -725,20 +725,43 @@ router.post('/continue', authMiddleware, aiGenerationRateLimit, async (req: Auth
     
     // Use compression for very long contexts (extended strategy)
     let recentContext: string;
+    let contextMetadata: {
+      selectedParagraphs: number;
+      totalParagraphs: number;
+      selectedWords: number;
+      totalWords: number;
+      strategy: string;
+      requestedStrategy: string;
+      requestedWindow: number;
+    };
+    
     if (contextStrategy === 'extended' && context.split(/\s+/).length > maxWords * 1.5) {
       const { selectSmartContextWithCompression } = await import('../utils/contextCompression');
       const compressed = selectSmartContextWithCompression(context, maxWords, characters, contextStrategy);
       recentContext = compressed.compressed;
-      console.log(`[Context Compression] Compressed ${compressed.originalLength} words to ${compressed.compressedLength} words (ratio: ${compressed.compressionRatio.toFixed(2)})`);
+      // Create metadata for compressed context
+      const totalWords = context.split(/\s+/).length;
+      contextMetadata = {
+        selectedParagraphs: 1,
+        totalParagraphs: 1,
+        selectedWords: compressed.compressedLength,
+        totalWords: compressed.originalLength,
+        strategy: 'compressed',
+        requestedStrategy: contextStrategy,
+        requestedWindow: maxWords
+      };
+      if (process.env.NODE_ENV !== 'production') {
+        console.log(`[Context Compression] Compressed ${compressed.originalLength} words to ${compressed.compressedLength} words (ratio: ${compressed.compressionRatio.toFixed(2)})`);
+      }
     } else {
       const smartContext = selectSmartContext(context, characters, maxWords);
       recentContext = smartContext.selectedText;
+      contextMetadata = {
+        ...smartContext.metadata,
+        requestedStrategy: contextStrategy,
+        requestedWindow: maxWords
+      };
     }
-    const contextMetadata = {
-      ...smartContext.metadata,
-      requestedStrategy: contextStrategy,
-      requestedWindow: maxWords
-    };
     
     console.log(
       `[Smart Context] Selected ${contextMetadata.selectedParagraphs}/${contextMetadata.totalParagraphs} paragraphs (${contextMetadata.selectedWords}/${contextMetadata.totalWords} words) using ${contextMetadata.strategy} strategy · requested=${contextStrategy}`

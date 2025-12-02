@@ -226,12 +226,13 @@ router.get('/:id', authMiddleware, async (req: AuthRequest, res) => {
       return res.status(401).json({ message: 'Unauthorized' });
     }
 
-    let project = projects.get(id);
+    let project: Project | undefined = projects.get(id);
     if (!project) {
-      project = await loadProjectById(id, userId);
-    }
-    if (!project) {
-      return res.status(404).json({ message: 'Project not found' });
+      const loaded = await loadProjectById(id, userId);
+      if (!loaded) {
+        return res.status(404).json({ message: 'Project not found' });
+      }
+      project = loaded;
     }
 
     if (project.userId !== userId) {
@@ -289,12 +290,13 @@ router.put('/:id', authMiddleware, async (req: AuthRequest, res) => {
       return res.status(401).json({ message: 'Unauthorized' });
     }
 
-    let project = projects.get(id);
+    let project: Project | undefined = projects.get(id);
     if (!project) {
-      project = await loadProjectById(id, userId);
-    }
-    if (!project) {
-      return res.status(404).json({ message: 'Project not found' });
+      const loaded = await loadProjectById(id, userId);
+      if (!loaded) {
+        return res.status(404).json({ message: 'Project not found' });
+      }
+      project = loaded;
     }
 
     if (project.userId !== userId) {
@@ -335,10 +337,11 @@ router.delete('/:id', authMiddleware, async (req: AuthRequest, res) => {
       return res.status(401).json({ message: 'Unauthorized' });
     }
 
-    const project = await loadProjectById(id, userId);
-    if (!project) {
+    const loaded = await loadProjectById(id, userId);
+    if (!loaded) {
       return res.status(404).json({ message: 'Project not found' });
     }
+    const project = loaded;
 
     if (project.userId !== userId) {
       return res.status(403).json({ message: 'Access denied' });
@@ -362,9 +365,13 @@ router.post('/:id/save', authMiddleware, async (req: AuthRequest, res) => {
     const userId = req.user?.id;
     const { content, chapters } = req.body;
 
-    let project = projects.get(id);
+    let project: Project | undefined = projects.get(id);
     if (!project && userId) {
-      project = await loadProjectById(id, userId);
+      const loaded = await loadProjectById(id, userId);
+      if (!loaded) {
+        return res.status(404).json({ message: 'Project not found' });
+      }
+      project = loaded;
     }
     if (!project) {
       return res.status(404).json({ message: 'Project not found' });
@@ -711,7 +718,7 @@ router.post('/:id/comments', authMiddleware, async (req: AuthRequest, res) => {
       return res.status(403).json({ message: 'Access denied' });
     }
 
-    const { text, selection, mentions, threadId, parentId, format, attachments, createTask } = req.body as {
+    const { text, selection, mentions, threadId, parentId, format, attachments, createTask: createTaskData } = req.body as {
       text?: string;
       selection?: { start?: number; end?: number; text?: string; sectionId?: string };
       mentions?: string[];
@@ -769,18 +776,18 @@ router.post('/:id/comments', authMiddleware, async (req: AuthRequest, res) => {
     const saved = addProjectComment(comment);
     
     // Create task from comment if requested
-    if (createTask && typeof createTask === 'object') {
-      const task = createTask({
+    if (createTaskData && typeof createTaskData === 'object') {
+      const task = await createTask({
         projectId: id,
-        title: createTask.title || text.trim().slice(0, 100),
+        title: createTaskData.title || text.trim().slice(0, 100),
         description: text.trim(),
         createdBy: userId,
-        assignedTo: Array.isArray(createTask.assignedTo) ? createTask.assignedTo : [],
-        dueDate: createTask.dueDate,
+        assignedTo: Array.isArray(createTaskData.assignedTo) ? createTaskData.assignedTo : [],
+        dueDate: createTaskData.dueDate,
         status: 'todo',
-        priority: createTask.priority || 'medium',
+        priority: createTaskData.priority || 'medium',
         relatedCommentId: saved.id,
-        tags: createTask.tags
+        tags: createTaskData.tags
       });
       // Link task to comment
       saved.taskId = task.id;

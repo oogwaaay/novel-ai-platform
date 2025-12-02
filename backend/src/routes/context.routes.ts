@@ -222,7 +222,7 @@ router.get('/knowledge/all', authMiddleware, async (req: AuthRequest, res) => {
         filteredKnowledge = allKnowledge
           .map(item => {
             const entry = item.entry;
-            const text = `${entry.title} ${entry.summary} ${entry.details || ''}`.toLowerCase();
+            const text = `${entry.title} ${entry.summary}`.toLowerCase();
             const relevanceScore = keywords.reduce((score, keyword) => {
               return score + (text.includes(keyword) ? 1 : 0);
             }, 0);

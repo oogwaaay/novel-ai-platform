@@ -174,29 +174,30 @@ export function updateTask(
   projectTasks.set(projectId, next);
 
   if (updatedTask && useSupabase) {
+    const taskToSave: CollaborationTask = updatedTask; // Type assertion
     (async () => {
       try {
         const patch: Partial<DbTaskRow> = {
-          title: updatedTask!.title,
-          description: updatedTask!.description,
-          assigned_to: updatedTask!.assignedTo || [],
-          due_date: updatedTask!.dueDate
-            ? new Date(updatedTask!.dueDate).toISOString()
+          title: taskToSave.title,
+          description: taskToSave.description,
+          assigned_to: taskToSave.assignedTo || [],
+          due_date: taskToSave.dueDate
+            ? new Date(taskToSave.dueDate).toISOString()
             : null,
-          status: updatedTask!.status,
-          priority: updatedTask!.priority || null,
-          related_comment_id: updatedTask!.relatedCommentId || null,
-          tags: updatedTask!.tags || null,
-          updated_at: new Date(updatedTask!.updatedAt).toISOString(),
-          completed_at: updatedTask!.completedAt
-            ? new Date(updatedTask!.completedAt).toISOString()
+          status: taskToSave.status,
+          priority: taskToSave.priority || null,
+          related_comment_id: taskToSave.relatedCommentId || null,
+          tags: taskToSave.tags || null,
+          updated_at: new Date(taskToSave.updatedAt).toISOString(),
+          completed_at: taskToSave.completedAt
+            ? new Date(taskToSave.completedAt).toISOString()
             : null,
-          completed_by: updatedTask!.completedBy || null
+          completed_by: taskToSave.completedBy || null
         };
         const { error } = await supabaseAdmin!
           .from('project_tasks')
           .update(patch)
-          .eq('id', updatedTask!.id)
+          .eq('id', taskToSave.id)
           .eq('project_id', projectId);
         if (error) {
           console.error('[Supabase] updateTask error', error);

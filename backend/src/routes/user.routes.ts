@@ -46,6 +46,10 @@ router.put('/profile', authMiddleware, async (req: AuthRequest, res) => {
       return draft;
     });
 
+    if (!updatedUser) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
     res.json({
       user: {
         id: updatedUser.id,

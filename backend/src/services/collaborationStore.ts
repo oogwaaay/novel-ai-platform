@@ -170,22 +170,23 @@ export function updateProjectComment(
   projectComments.set(projectId, next);
 
   if (updatedComment && useSupabase) {
+    const commentToSave: ProjectComment = updatedComment; // Type assertion
     (async () => {
       try {
         const patch: Partial<DbCommentRow> = {
-          text: updatedComment.text,
-          selection: updatedComment.selection || null,
-          mentions: updatedComment.mentions || null,
-          thread_id: updatedComment.threadId,
-          parent_id: updatedComment.parentId ?? null,
-          status: updatedComment.status,
-          resolved_by: updatedComment.resolvedBy ?? null,
-          resolved_at: updatedComment.resolvedAt
-            ? new Date(updatedComment.resolvedAt).toISOString()
+          text: commentToSave.text,
+          selection: commentToSave.selection || null,
+          mentions: commentToSave.mentions || null,
+          thread_id: commentToSave.threadId,
+          parent_id: commentToSave.parentId ?? null,
+          status: commentToSave.status,
+          resolved_by: commentToSave.resolvedBy ?? null,
+          resolved_at: commentToSave.resolvedAt
+            ? new Date(commentToSave.resolvedAt).toISOString()
             : null,
-          format: updatedComment.format || 'plain',
-          attachments: updatedComment.attachments || null,
-          task_id: updatedComment.taskId ?? null
+          format: commentToSave.format || 'plain',
+          attachments: commentToSave.attachments || null,
+          task_id: commentToSave.taskId ?? null
         };
         const { error } = await supabaseAdmin!
           .from('project_comments')
@@ -398,14 +399,15 @@ export function renewSectionLock(
   projectLocks.set(projectId, next);
 
   if (updatedLock && useSupabase) {
+    const lockToSave: SectionLock = updatedLock; // Type assertion
     (async () => {
       try {
         const { error } = await supabaseAdmin!
           .from('section_locks')
           .update({
-            expires_at: new Date(updatedLock!.expiresAt).toISOString()
+            expires_at: new Date(lockToSave.expiresAt).toISOString()
           })
-          .eq('id', updatedLock!.id)
+          .eq('id', lockToSave.id)
           .eq('project_id', projectId);
         if (error) {
           console.error('[Supabase] renewSectionLock error', error);
@@ -440,12 +442,13 @@ export function releaseSectionLock(
   projectLocks.set(projectId, next);
 
   if (removed && useSupabase) {
+    const lockToDelete: SectionLock = removed; // Type assertion
     (async () => {
       try {
         const { error } = await supabaseAdmin!
           .from('section_locks')
           .delete()
-          .eq('id', removed!.id)
+          .eq('id', lockToDelete.id)
           .eq('project_id', projectId);
         if (error) {
           console.error('[Supabase] releaseSectionLock error', error);
