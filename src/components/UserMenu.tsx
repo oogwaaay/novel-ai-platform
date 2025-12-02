@@ -82,6 +82,18 @@ export default function UserMenu() {
             >
               Generator
             </button>
+            <div className="h-px bg-slate-100 my-1" />
+            {/* ✅ P1: 账号设置入口 */}
+            <button
+              onClick={() => {
+                navigate('/settings');
+                setIsOpen(false);
+              }}
+              className="w-full text-left px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 rounded-lg transition"
+            >
+              Account Settings
+            </button>
+            {/* ✅ P1: 订阅管理入口 */}
             <button
               onClick={() => {
                 navigate('/pricing');

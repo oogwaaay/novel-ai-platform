@@ -9,6 +9,32 @@ interface RateLimitStore {
 
 const store: RateLimitStore = {};
 
+// Cleanup interval reference for proper cleanup
+let cleanupInterval: NodeJS.Timeout | null = null;
+
+// Initialize cleanup interval once (only if not already initialized)
+if (cleanupInterval === null) {
+  cleanupInterval = setInterval(() => {
+    const now = Date.now();
+    Object.keys(store).forEach((key) => {
+      if (store[key].resetTime < now) {
+        delete store[key];
+      }
+    });
+  }, 5 * 60 * 1000);
+  
+  // Cleanup on process exit
+  const cleanup = () => {
+    if (cleanupInterval) {
+      clearInterval(cleanupInterval);
+      cleanupInterval = null;
+    }
+  };
+  
+  process.on('SIGTERM', cleanup);
+  process.on('SIGINT', cleanup);
+}
+
 interface RateLimitOptions {
   windowMs: number; // Time window in milliseconds
   max: number; // Maximum requests per window
@@ -25,16 +51,6 @@ const defaultKeyGenerator = (req: Request): string => {
 
 export function rateLimit(options: RateLimitOptions) {
   const { windowMs, max, message = 'Too many requests, please try again later', keyGenerator = defaultKeyGenerator } = options;
-
-  // Clean up expired entries every 5 minutes
-  setInterval(() => {
-    const now = Date.now();
-    Object.keys(store).forEach((key) => {
-      if (store[key].resetTime < now) {
-        delete store[key];
-      }
-    });
-  }, 5 * 60 * 1000);
 
   return (req: Request, res: Response, next: NextFunction) => {
     const key = keyGenerator(req);

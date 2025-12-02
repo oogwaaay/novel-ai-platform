@@ -127,7 +127,14 @@ export default function LoginModal({ open, onClose, onSuccess }: LoginModalProps
             <button
               type="button"
               onClick={() => {
-                const apiUrl = import.meta.env.VITE_API_URL || '/api';
+                let apiUrl = import.meta.env.VITE_API_URL || '/api';
+                // 如果是相对路径，使用后端服务器 URL（避免被 React Router 拦截）
+                if (apiUrl.startsWith('/')) {
+                  // 生产环境使用环境变量，开发环境使用 localhost
+                  const backendUrl = import.meta.env.VITE_BACKEND_URL || 
+                    (import.meta.env.DEV ? 'http://localhost:3001' : window.location.origin);
+                  apiUrl = `${backendUrl}${apiUrl}`;
+                }
                 window.location.href = `${apiUrl}/auth/google`;
               }}
               className="flex items-center justify-center px-4 py-2.5 border border-slate-300 rounded-xl text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 transition"
@@ -155,7 +162,14 @@ export default function LoginModal({ open, onClose, onSuccess }: LoginModalProps
             <button
               type="button"
               onClick={() => {
-                const apiUrl = import.meta.env.VITE_API_URL || '/api';
+                let apiUrl = import.meta.env.VITE_API_URL || '/api';
+                // 如果是相对路径，使用后端服务器 URL（避免被 React Router 拦截）
+                if (apiUrl.startsWith('/')) {
+                  // 生产环境使用环境变量，开发环境使用 localhost
+                  const backendUrl = import.meta.env.VITE_BACKEND_URL || 
+                    (import.meta.env.DEV ? 'http://localhost:3001' : window.location.origin);
+                  apiUrl = `${backendUrl}${apiUrl}`;
+                }
                 window.location.href = `${apiUrl}/auth/github`;
               }}
               className="flex items-center justify-center px-4 py-2.5 border border-slate-300 rounded-xl text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 transition"

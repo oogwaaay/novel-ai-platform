@@ -56,7 +56,7 @@ export default function Updates() {
   );
 
   return (
-    <div className="bg-slate-50 min-h-screen py-16">
+    <div className="min-h-screen py-16">
       <SEO
         title="Release Notes - Scribely"
         description="Follow along with Scribely feature launches, UX refinements, and infrastructure updates for your novel ai writing workspace."

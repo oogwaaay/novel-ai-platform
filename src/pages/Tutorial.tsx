@@ -50,7 +50,7 @@ export default function Tutorial() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <p className="text-slate-600">Loading tutorial...</p>
       </div>
     );
@@ -65,7 +65,7 @@ export default function Tutorial() {
   );
 
   return (
-    <div className="bg-slate-50 min-h-screen">
+    <div className="min-h-screen">
       <SEO
         title={`${tutorial.title} - Scribely Tutorial`}
         description={tutorial.description}

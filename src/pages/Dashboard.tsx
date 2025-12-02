@@ -663,7 +663,7 @@ export default function Dashboard() {
   }, [isAuthenticated]);
 
   return (
-    <div className="bg-slate-50 min-h-screen py-12">
+    <div className="min-h-screen py-12">
       <SEO
         title="Dashboard - Your Projects | Scribely"
         description="Manage your AI-generated novels and projects with Scribely. View, edit, and organize all your writing projects in one place."

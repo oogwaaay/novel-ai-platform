@@ -269,7 +269,7 @@ export default function Pricing() {
   ];
 
   return (
-    <div className="bg-slate-50 min-h-screen py-16">
+    <div className="min-h-screen py-16">
       <SEO
         title="Pricing - AI Novel Generator Plans | Novel AI"
         description="Choose the right plan for your writing workflow. Free, Starter, Pro, and Unlimited plans with transparent pricing. Start free or upgrade for advanced features."

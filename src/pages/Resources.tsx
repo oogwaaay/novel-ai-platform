@@ -55,7 +55,7 @@ export default function Resources() {
   }, []);
 
   return (
-    <div className="bg-slate-50 min-h-screen py-16">
+    <div className="min-h-screen py-16">
       <SEO
         title="Resources & Tutorials - Scribely"
         description="Guides, tutorials, and release notes for Scribely, a novel ai writing workspace. Learn how to plan, draft, and ship stories faster."

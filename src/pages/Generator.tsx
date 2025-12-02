@@ -80,7 +80,9 @@ const getCollaborationBaseUrl = () => {
   if (typeof window !== 'undefined') {
     return window.location.origin.replace(/\/$/, '');
   }
-  return 'http://localhost:3001';
+  // 生产环境使用环境变量，开发环境使用 localhost
+  return import.meta.env.VITE_BACKEND_URL || 
+    (import.meta.env.DEV ? 'http://localhost:3001' : '');
 };
 import { useAuthStore } from '../store/authStore';
 import { useProjectStore } from '../store/projectStore';
@@ -415,14 +417,16 @@ export default function Generator() {
   const canUseCollaboration = hasFeature('collaboration');
   const collabBaseUrl = useMemo(() => getCollaborationBaseUrl(), []);
 
-  // Debug: Log subscription state on mount
+  // Debug: Log subscription state on mount (development only)
   useEffect(() => {
-    console.log('[Generator] ========== Subscription Debug ==========');
-    console.log('[Generator] Current tier:', tier);
-    console.log('[Generator] Plan features:', plan.features);
-    console.log('[Generator] aiAssistant feature:', plan.features.aiAssistant);
-    console.log('[Generator] canUseAIAssistant:', canUseAIAssistant);
-    console.log('[Generator] ========================================');
+    if (import.meta.env.DEV) {
+      console.log('[Generator] ========== Subscription Debug ==========');
+      console.log('[Generator] Current tier:', tier);
+      console.log('[Generator] Plan features:', plan.features);
+      console.log('[Generator] aiAssistant feature:', plan.features.aiAssistant);
+      console.log('[Generator] canUseAIAssistant:', canUseAIAssistant);
+      console.log('[Generator] ========================================');
+    }
   }, [tier, plan.features, canUseAIAssistant]);
 
   // Calculate min/max based on user's plan
@@ -489,7 +493,7 @@ const [outlineMapData, setOutlineMapData] = useState<OutlineMapPayload | null>(n
         await updateProjectContext(currentProject.id, {
           writingStyle: writingStyle
         });
-        console.log('[Generator] Writing style saved to backend');
+        if (import.meta.env.DEV) console.log('[Generator] Writing style saved to backend');
       } catch (error) {
         console.error('[Generator] Failed to save writing style to backend:', error);
       }
@@ -509,7 +513,7 @@ const [outlineMapData, setOutlineMapData] = useState<OutlineMapPayload | null>(n
         const context = await getProjectContext(currentProject.id);
         if (context.writingStyle) {
           setWritingStyle(context.writingStyle);
-          console.log('[Generator] Writing style loaded from backend');
+          if (import.meta.env.DEV) console.log('[Generator] Writing style loaded from backend');
         }
       } catch (error) {
         console.error('[Generator] Failed to load writing style from backend:', error);
@@ -738,7 +742,7 @@ const [outlineMapData, setOutlineMapData] = useState<OutlineMapPayload | null>(n
       if (Array.isArray(stored)) {
         setKnowledgeEntries(stored);
       }
-      setKnowledgeLoaded(true);
+      setKnowledgeReady(true);
     })();
     return () => {
       cancelled = true;
@@ -761,7 +765,7 @@ const [outlineMapData, setOutlineMapData] = useState<OutlineMapPayload | null>(n
           await setKeyValue('novel-ai-knowledge', backendEntries);
           return;
         } catch (error) {
-          console.warn('[Generator] Failed to load knowledge from backend, falling back to local cache', error);
+          if (import.meta.env.DEV) console.warn('[Generator] Failed to load knowledge from backend, falling back to local cache', error);
         }
       }
 
@@ -798,7 +802,7 @@ const [outlineMapData, setOutlineMapData] = useState<OutlineMapPayload | null>(n
           knowledgeEntries
         });
         knowledgePersistRef.current = serialized;
-        console.log('[Generator] Knowledge entries synced to backend');
+        if (import.meta.env.DEV) console.log('[Generator] Knowledge entries synced to backend');
       } catch (error) {
         console.error('[Generator] Failed to sync knowledge entries:', error);
       }
@@ -841,7 +845,7 @@ const [outlineMapData, setOutlineMapData] = useState<OutlineMapPayload | null>(n
         await updateProjectContext(currentProject.id, {
           styleTemplates: styleTemplates
         });
-        console.log('[Generator] Style templates saved to backend');
+        if (import.meta.env.DEV) console.log('[Generator] Style templates saved to backend');
       } catch (error) {
         console.error('[Generator] Failed to save style templates to backend:', error);
       }
@@ -869,7 +873,7 @@ const [outlineMapData, setOutlineMapData] = useState<OutlineMapPayload | null>(n
             setKeyValue('novel-ai-style-templates', mergedTemplates);
             return mergedTemplates;
           });
-          console.log('[Generator] Style templates loaded from backend');
+          if (import.meta.env.DEV) console.log('[Generator] Style templates loaded from backend');
         }
       } catch (error) {
         console.error('[Generator] Failed to load style templates from backend:', error);
@@ -961,7 +965,7 @@ const [outlineMapData, setOutlineMapData] = useState<OutlineMapPayload | null>(n
       createdAt: Date.now()
     };
     setStyleTemplates((prev) => [newTemplate, ...prev]);
-    console.log('[Generator] Style template saved:', templateName);
+    if (import.meta.env.DEV) console.log('[Generator] Style template saved:', templateName);
   };
 
   const handleAiAssistAction = useCallback(
@@ -1031,12 +1035,13 @@ const [outlineMapData, setOutlineMapData] = useState<OutlineMapPayload | null>(n
           charactersUsed: canUseCharacters && characters.length > 0 ? characters.length : undefined,
           styleApplied: canUseStyleMemory && writingStyle ? (writingStyle.preset || 'Custom') : undefined
         });
-      } catch (error: any) {
+      } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         setAiAssistResult({
           status: 'error',
           action,
           input,
-          error: error?.message || 'Failed to run AI action'
+          error: errorMessage
         });
       } finally {
         setAiMenuPosition(null);
@@ -1149,7 +1154,7 @@ const [outlineMapData, setOutlineMapData] = useState<OutlineMapPayload | null>(n
             return;
           }
         } catch (error) {
-          console.warn('[Collaboration] patch apply failed', error);
+          if (import.meta.env.DEV) console.warn('[Collaboration] patch apply failed', error);
           if (!fallbackContent) {
             return;
           }
@@ -1163,12 +1168,12 @@ const [outlineMapData, setOutlineMapData] = useState<OutlineMapPayload | null>(n
           if (!mergeResult.hasConflicts) {
             nextContent = mergeResult.merged;
           } else {
-            console.warn('[Collaboration] Conflicts detected, using local version:', mergeResult.conflicts);
+            if (import.meta.env.DEV) console.warn('[Collaboration] Conflicts detected, using local version:', mergeResult.conflicts);
             // For now, prefer local version if conflicts exist
             // In future, show conflict resolution UI
           }
         } catch (error) {
-          console.warn('[Collaboration] Three-way merge failed, using fallback:', error);
+          if (import.meta.env.DEV) console.warn('[Collaboration] Three-way merge failed, using fallback:', error);
         }
       }
 
@@ -1278,7 +1283,7 @@ const [outlineMapData, setOutlineMapData] = useState<OutlineMapPayload | null>(n
   );
 
   const handleEditorContentChange = useCallback(
-    (newContent: string, _delta: any, source: Sources = 'api') => {
+    (newContent: string, _delta: unknown, source: Sources = 'api') => {
       const targetSectionId = chapters.length > 0 ? `chapter-${activeChapterIndex}` : 'draft';
       if (chapters.length > 0) {
         setChapters((prev) => {
@@ -1509,7 +1514,7 @@ const [outlineMapData, setOutlineMapData] = useState<OutlineMapPayload | null>(n
     const projectId = searchParams.get('project');
     
     if (projectId && !isAuthenticated) {
-      console.log('[Generator] User not authenticated with project ID, showing login modal');
+      if (import.meta.env.DEV) console.log('[Generator] User not authenticated with project ID, showing login modal');
       setShowLoginModal(true);
     }
   }, [searchParams.get('project'), isAuthenticated]);
@@ -1519,13 +1524,13 @@ const [outlineMapData, setOutlineMapData] = useState<OutlineMapPayload | null>(n
     const projectId = searchParams.get('project');
     const isNewProject = searchParams.get('new') === 'true';
     
-    console.log('[Generator] Project loading effect triggered:', { projectId, isNewProject, isAuthenticated, currentProjectId: currentProject?.id });
+    if (import.meta.env.DEV) console.log('[Generator] Project loading effect triggered:', { projectId, isNewProject, isAuthenticated, currentProjectId: currentProject?.id });
     
     if (!projectId) return;
     
     // 如果未登录，不加载项目数据，但引导仍然可以显示（基于 URL 参数）
     if (!isAuthenticated) {
-      console.log('[Generator] User not authenticated, skipping project load');
+      if (import.meta.env.DEV) console.log('[Generator] User not authenticated, skipping project load');
       return;
     }
     
@@ -1553,10 +1558,10 @@ const [outlineMapData, setOutlineMapData] = useState<OutlineMapPayload | null>(n
     let cancelled = false;
     (async () => {
       try {
-        console.log('[Generator] Loading project from backend:', projectId);
+        if (import.meta.env.DEV) console.log('[Generator] Loading project from backend:', projectId);
         const project = await getProject(projectId);
         if (cancelled) {
-          console.log('[Generator] Project load cancelled');
+          if (import.meta.env.DEV) console.log('[Generator] Project load cancelled');
           return;
         }
         
@@ -2872,7 +2877,7 @@ const [outlineMapData, setOutlineMapData] = useState<OutlineMapPayload | null>(n
 
   return (
     <>
-    <div className="bg-slate-50 py-10">
+    <div className="py-10">
       <SEO
         title="AI Novel Generator - Create Complete Novels with AI | Scribely"
         description="Use our free AI novel generator to create complete novels in minutes with Scribely. Generate novels about AI, fantasy, romance, mystery, and more. Best novel ai style writer tool."

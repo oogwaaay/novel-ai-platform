@@ -294,7 +294,7 @@ router.post('/generate', authMiddleware, async (req, res) => {
       if (userId) {
         const pagesUsed = Math.ceil(fullContent.length / 1250); // ~250 words per page, ~5 chars per word
         const totalTokens = chunks * 4000; // Rough estimate
-        recordUsage(userId, {
+        await recordUsage(userId, {
           generations: 1,
           pages: pagesUsed,
           tokens: totalTokens
@@ -795,7 +795,7 @@ router.post('/continue', authMiddleware, aiGenerationRateLimit, async (req: Auth
     const userId = req.user?.id;
     if (userId) {
       const pagesUsed = Math.ceil(continuedText.length / 1250); // ~250 words per page, ~5 chars per word
-      recordUsage(userId, {
+      await recordUsage(userId, {
         generations: 1,
         pages: pagesUsed,
         tokens: totalTokens

@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { authMiddleware, type AuthRequest } from '../middleware/auth';
+import { getUserById, updateUser } from '../services/userStore';
 
 const router = Router();
 
@@ -22,16 +23,44 @@ router.get('/profile', authMiddleware, async (req: AuthRequest, res) => {
 router.put('/profile', authMiddleware, async (req: AuthRequest, res) => {
   try {
     const { name, avatar } = req.body;
-    // In MVP, just return success
-    // In production, update database
+    const userId = req.user?.id;
+
+    if (!userId) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    // Get current user
+    const currentUser = await getUserById(userId);
+    if (!currentUser) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Update user in database
+    const updatedUser = await updateUser(userId, (draft) => {
+      if (name !== undefined) {
+        draft.name = name?.trim() || undefined;
+      }
+      if (avatar !== undefined) {
+        draft.avatar = avatar?.trim() || undefined;
+      }
+      return draft;
+    });
+
     res.json({
-      id: req.user?.id,
-      email: req.user?.email,
-      name: name || req.user?.email.split('@')[0],
-      avatar
+      user: {
+        id: updatedUser.id,
+        email: updatedUser.email,
+        name: updatedUser.name,
+        avatar: updatedUser.avatar,
+        createdAt: updatedUser.createdAt,
+        lastLoginAt: updatedUser.lastLoginAt,
+        subscription: updatedUser.subscription,
+        usage: updatedUser.usage
+      }
     });
   } catch (error: any) {
-    res.status(500).json({ message: 'Failed to update profile' });
+    console.error('[User] Failed to update profile:', error);
+    res.status(500).json({ message: 'Failed to update profile', error: error.message });
   }
 });
 

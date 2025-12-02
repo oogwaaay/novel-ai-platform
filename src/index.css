@@ -16,6 +16,13 @@
 body {
   margin: 0;
   background-color: var(--bg-page);
+  background-image: 
+    linear-gradient(rgba(248, 250, 252, 0.7), rgba(241, 245, 249, 0.7)),
+    url('/background.png');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  background-repeat: no-repeat;
   color: var(--text-secondary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;

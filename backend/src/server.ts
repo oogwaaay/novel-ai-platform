@@ -1,6 +1,7 @@
+import 'dotenv/config'; // Load environment variables before anything else
+
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
 import http from 'http';
 import { Server as SocketIOServer } from 'socket.io';
 import crypto from 'node:crypto';
@@ -24,17 +25,24 @@ import {
   addProjectActivity,
   listProjectActivities,
   type ProjectComment,
-  type ProjectActivity
+  type ProjectActivity,
+  loadProjectCommentsFromSupabase,
+  loadSectionLocksFromSupabase
 } from './services/collaborationStore';
 import { buildUserHandle, extractMentions, normalizeHandle } from './utils/handle';
 import { apiRateLimit, authRateLimit, aiGenerationRateLimit } from './middleware/rateLimit';
 import { auditLog } from './middleware/auditLog';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 
-dotenv.config();
-
 const app = express();
-app.use(cors());
+
+// CORS configuration - restrict to specific origin in production
+const corsOptions = {
+  origin: process.env.CLIENT_ORIGIN || (process.env.NODE_ENV === 'production' ? false : '*'),
+  credentials: true,
+  optionsSuccessStatus: 200
+};
+app.use(cors(corsOptions));
 app.use(express.json({ limit: '10mb' })); // Limit request body size
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(auditLog);
@@ -76,13 +84,6 @@ app.use(notFoundHandler);
 app.use(errorHandler);
 
 const server = http.createServer(app);
-
-setInterval(() => {
-  const affected = sweepExpiredLocks();
-  affected.forEach((projectId) => {
-    io.to(`project:${projectId}`).emit('collab:locks', listSectionLocks(projectId));
-  });
-}, 5000);
 
 type Participant = {
   userId: string;
@@ -146,10 +147,13 @@ const resolveSectionId = (sectionId?: string | null): string => {
   return sectionId;
 };
 
+// CORS configuration - restrict to specific origin in production
+const corsOrigin = process.env.CLIENT_ORIGIN || (process.env.NODE_ENV === 'production' ? undefined : '*');
 const io = new SocketIOServer(server, {
   cors: {
-    origin: process.env.CLIENT_ORIGIN || '*',
-    methods: ['GET', 'POST']
+    origin: corsOrigin,
+    methods: ['GET', 'POST'],
+    credentials: true
   }
 });
 
@@ -162,15 +166,25 @@ const recordActivity = (
   return entry;
 };
 
-setInterval(() => {
+// Lock cleanup interval - save reference for cleanup
+const lockCleanupInterval = setInterval(() => {
   const affected = sweepExpiredLocks();
   affected.forEach((projectId) => {
     io.to(`project:${projectId}`).emit('collab:locks', listSectionLocks(projectId));
   });
 }, 5000);
 
+// Cleanup on process exit
+process.on('SIGTERM', () => {
+  clearInterval(lockCleanupInterval);
+});
+
+process.on('SIGINT', () => {
+  clearInterval(lockCleanupInterval);
+});
+
 io.on('connection', (socket) => {
-  socket.on('collab:join', (payload) => {
+  socket.on('collab:join', async (payload) => {
     try {
       const { projectId, userId, userName, userEmail, sectionId, content } = payload || {};
       if (!projectId || !userId) {
@@ -214,6 +228,10 @@ io.on('connection', (socket) => {
       socket.data.projectId = projectId;
       socket.data.userId = userId;
       socket.data.sectionId = resolvedSection;
+
+      // Load existing comments & locks from Supabase on first join
+      await loadProjectCommentsFromSupabase(projectId);
+      await loadSectionLocksFromSupabase(projectId);
 
       const syncContent = room.sections.get(resolvedSection)?.content ?? sectionContent ?? '';
       socket.emit('collab:sync', {

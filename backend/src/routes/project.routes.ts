@@ -7,7 +7,8 @@ import {
   addProjectComment,
   updateProjectComment,
   listProjectActivities,
-  type ProjectComment
+  type ProjectComment,
+  loadProjectCommentsFromSupabase
 } from '../services/collaborationStore';
 import {
   listProjectTasks,
@@ -26,16 +27,23 @@ import {
   canEdit,
   canComment
 } from '../utils/collaborationPermissions';
+import { supabaseAdmin } from '../services/supabaseClient';
 
 const router = Router();
 
-// In-memory storage for MVP (replace with database in production)
+// In-memory storage for collaboration metadata & versions
+// 项目本体数据使用 Supabase 持久化，内存只作为缓存和版本记录。
 const projects: Map<string, Project> = new Map();
 const userProjects: Map<string, string[]> = new Map(); // userId -> projectIds
 const projectVersions: Map<string, ProjectVersion[]> = new Map(); // projectId -> versions
 
 // Helper: Create a version snapshot
-const createVersion = (project: Project, label?: string, branch?: string, parentVersionId?: string): ProjectVersion => {
+const createVersion = (
+  project: Project,
+  label?: string,
+  branch?: string,
+  parentVersionId?: string
+): ProjectVersion => {
   return {
     id: crypto.randomUUID(),
     projectId: project.id,
@@ -49,16 +57,143 @@ const createVersion = (project: Project, label?: string, branch?: string, parent
 };
 
 // Helper: Store version (keep last 50 versions per project for branches)
-const storeVersion = (project: Project, label?: string, branch?: string, parentVersionId?: string): void => {
+const storeVersion = (
+  project: Project,
+  label?: string,
+  branch?: string,
+  parentVersionId?: string
+): void => {
   const versions = projectVersions.get(project.id) || [];
   const newVersion = createVersion(project, label, branch, parentVersionId);
   const updatedVersions = [newVersion, ...versions].slice(0, 50); // Keep last 50 versions (increased for branches)
   projectVersions.set(project.id, updatedVersions);
-  
-  // Update project with versions reference
-  const updatedProject = { ...project, versions: updatedVersions };
-  projects.set(project.id, updatedProject);
 };
+
+type DbProjectRow = {
+  id: string;
+  user_id: string;
+  title: string;
+  content: string | null;
+  chapters: any | null;
+  genre: string | null;
+  length: number | null;
+  language: string | null;
+  outline: string | null;
+  folder: string | null;
+  tags: string[] | null;
+  created_at: string | null;
+  updated_at: string | null;
+};
+
+const mapRowToProject = (row: DbProjectRow): Project => {
+  const createdAt = row.created_at ? new Date(row.created_at).getTime() : Date.now();
+  const updatedAt = row.updated_at ? new Date(row.updated_at).getTime() : createdAt;
+  return {
+    id: row.id,
+    userId: row.user_id,
+    title: row.title || 'Untitled Project',
+    content: row.content ?? '',
+    chapters: (row.chapters as Chapter[] | null) ?? [],
+    genre: row.genre ?? 'general-fiction',
+    length: row.length ?? 30,
+    language: row.language ?? 'english',
+    outline: row.outline ?? undefined,
+    folder: row.folder ?? undefined,
+    tags: row.tags ?? undefined,
+    createdAt,
+    updatedAt
+  };
+};
+
+async function loadProjectsForUser(userId: string): Promise<void> {
+  if (!supabaseAdmin) return;
+  if (userProjects.has(userId)) return;
+
+  const { data, error } = await supabaseAdmin
+    .from('projects')
+    .select('*')
+    .eq('user_id', userId)
+    .order('updated_at', { ascending: false });
+
+  if (error) {
+    console.error('[Supabase] Failed to load projects for user', userId, error);
+    return;
+  }
+
+  const ids: string[] = [];
+  for (const row of (data || []) as DbProjectRow[]) {
+    const project = mapRowToProject(row);
+    projects.set(project.id, project);
+    ids.push(project.id);
+  }
+  userProjects.set(userId, ids);
+}
+
+async function loadProjectById(id: string, userId: string): Promise<Project | null> {
+  const cached = projects.get(id);
+  if (cached) return cached.userId === userId ? cached : null;
+  if (!supabaseAdmin) return null;
+
+  const { data, error } = await supabaseAdmin
+    .from('projects')
+    .select('*')
+    .eq('id', id)
+    .eq('user_id', userId)
+    .maybeSingle();
+
+  if (error) {
+    console.error('[Supabase] Failed to load project by id', id, error);
+    return null;
+  }
+
+  if (!data) return null;
+  const project = mapRowToProject(data as DbProjectRow);
+  projects.set(project.id, project);
+  const ids = userProjects.get(userId) || [];
+  if (!ids.includes(project.id)) {
+    userProjects.set(userId, [...ids, project.id]);
+  }
+  return project;
+}
+
+async function syncProjectToSupabase(project: Project): Promise<void> {
+  if (!supabaseAdmin) return;
+  const payload = {
+    id: project.id,
+    user_id: project.userId,
+    title: project.title,
+    content: project.content,
+    chapters: project.chapters,
+    genre: project.genre,
+    length: project.length,
+    language: project.language,
+    outline: project.outline ?? null,
+    folder: project.folder ?? null,
+    tags: project.tags ?? null,
+    created_at: new Date(project.createdAt).toISOString(),
+    updated_at: new Date(project.updatedAt).toISOString()
+  };
+
+  const { error } = await supabaseAdmin
+    .from('projects')
+    .upsert(payload, { onConflict: 'id' });
+
+  if (error) {
+    console.error('[Supabase] Failed to upsert project', project.id, error);
+  }
+}
+
+async function deleteProjectFromSupabase(id: string, userId: string): Promise<void> {
+  if (!supabaseAdmin) return;
+  const { error } = await supabaseAdmin
+    .from('projects')
+    .delete()
+    .eq('id', id)
+    .eq('user_id', userId);
+  if (error) {
+    console.error('[Supabase] Failed to delete project', id, error);
+  }
+}
 
 // Get all projects for user (including projects where user is a collaborator)
 router.get('/', authMiddleware, async (req: AuthRequest, res) => {
@@ -67,6 +202,8 @@ router.get('/', authMiddleware, async (req: AuthRequest, res) => {
     if (!userId) {
       return res.status(401).json({ message: 'Unauthorized' });
     }
+
+    await loadProjectsForUser(userId);
 
     const projectIds = userProjects.get(userId) || [];
     const userProjectsList = projectIds
@@ -85,8 +222,14 @@ router.get('/:id', authMiddleware, async (req: AuthRequest, res) => {
   try {
     const { id } = req.params;
     const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
 
-    const project = projects.get(id);
+    let project = projects.get(id);
+    if (!project) {
+      project = await loadProjectById(id, userId);
+    }
     if (!project) {
       return res.status(404).json({ message: 'Project not found' });
     }
@@ -129,6 +272,8 @@ router.post('/', authMiddleware, async (req: AuthRequest, res) => {
     const userProjectIds = userProjects.get(userId) || [];
     userProjects.set(userId, [...userProjectIds, project.id]);
 
+    await syncProjectToSupabase(project);
+
     res.json(project);
   } catch (error: any) {
     res.status(500).json({ message: 'Failed to create project' });
@@ -140,8 +285,14 @@ router.put('/:id', authMiddleware, async (req: AuthRequest, res) => {
   try {
     const { id } = req.params;
     const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
 
-    const project = projects.get(id);
+    let project = projects.get(id);
+    if (!project) {
+      project = await loadProjectById(id, userId);
+    }
     if (!project) {
       return res.status(404).json({ message: 'Project not found' });
     }
@@ -159,13 +310,15 @@ router.put('/:id', authMiddleware, async (req: AuthRequest, res) => {
     const contentChanged = updates.content !== undefined && updates.content !== project.content;
     const chaptersChanged = updates.chapters !== undefined && JSON.stringify(updates.chapters) !== JSON.stringify(project.chapters);
     
-    const updatedProject = { ...project, ...updates };
+    const updatedProject: Project = { ...project, ...updates };
     projects.set(id, updatedProject);
 
     // Auto-create version on significant changes (content or chapters)
     if (contentChanged || chaptersChanged) {
       storeVersion(updatedProject, undefined, updatedProject.versions?.[0]?.branch || 'main');
     }
+
+    await syncProjectToSupabase(updatedProject);
 
     res.json(updatedProject);
   } catch (error: any) {
@@ -178,8 +331,11 @@ router.delete('/:id', authMiddleware, async (req: AuthRequest, res) => {
   try {
     const { id } = req.params;
     const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
 
-    const project = projects.get(id);
+    const project = await loadProjectById(id, userId);
     if (!project) {
       return res.status(404).json({ message: 'Project not found' });
     }
@@ -191,6 +347,7 @@ router.delete('/:id', authMiddleware, async (req: AuthRequest, res) => {
     projects.delete(id);
     const userProjectIds = userProjects.get(userId) || [];
     userProjects.set(userId, userProjectIds.filter((pid) => pid !== id));
+    await deleteProjectFromSupabase(id, userId);
 
     res.json({ message: 'Project deleted' });
   } catch (error: any) {
@@ -205,7 +362,10 @@ router.post('/:id/save', authMiddleware, async (req: AuthRequest, res) => {
     const userId = req.user?.id;
     const { content, chapters } = req.body;
 
-    const project = projects.get(id);
+    let project = projects.get(id);
+    if (!project && userId) {
+      project = await loadProjectById(id, userId);
+    }
     if (!project) {
       return res.status(404).json({ message: 'Project not found' });
     }
@@ -216,8 +376,8 @@ router.post('/:id/save', authMiddleware, async (req: AuthRequest, res) => {
 
     const updatedProject: Project = {
       ...project,
-      content: content || project.content,
-      chapters: chapters || project.chapters,
+      content: content ?? project.content,
+      chapters: chapters ?? project.chapters,
       updatedAt: Date.now()
     };
 
@@ -226,12 +386,14 @@ router.post('/:id/save', authMiddleware, async (req: AuthRequest, res) => {
     const chaptersChanged = chapters !== undefined && JSON.stringify(chapters) !== JSON.stringify(project.chapters);
     
     projects.set(id, updatedProject);
-    
+
     // Auto-create version on content changes
     if (contentChanged || chaptersChanged) {
       storeVersion(updatedProject, undefined, updatedProject.versions?.[0]?.branch || 'main');
     }
-    
+
+    await syncProjectToSupabase(updatedProject);
+
     res.json(updatedProject);
   } catch (error: any) {
     res.status(500).json({ message: 'Failed to save project content' });
@@ -501,6 +663,7 @@ router.get('/:id/comments', authMiddleware, async (req: AuthRequest, res) => {
       return res.status(403).json({ message: 'Access denied' });
     }
 
+    await loadProjectCommentsFromSupabase(id);
     const comments = listProjectComments(id);
     res.json(comments);
   } catch (error: any) {

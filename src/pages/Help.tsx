@@ -254,7 +254,7 @@ export default function Help() {
   const helpBlocks: BlockSchema[] = [templateBlock, ...infoBlocks];
 
   return (
-    <div className="bg-slate-50">
+    <div>
       <SEO
         title="Help & Templates - Novel AI Workspace"
         description="Learn how to use the Novel AI workspace, browse story templates, and read answers to common questions."

@@ -254,7 +254,7 @@ export default function Home() {
   const homeBlocks: BlockSchema[] = [heroBlock, testimonialBlock];
 
   return (
-    <div className="bg-slate-50">
+    <div>
       <SEO
         title="Novel AI - AI Novel Generator | Create Stories with AI"
         description="Generate complete novels with AI in minutes. Free AI novel generator for writers. Create novels about AI, fantasy, romance, mystery, and more."

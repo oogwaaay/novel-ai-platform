@@ -1,4 +1,5 @@
 import crypto from 'node:crypto';
+import { supabaseAdmin } from './supabaseClient';
 
 export interface CommentSelection {
   start: number;
@@ -36,6 +37,69 @@ export interface ProjectComment {
 
 const projectComments = new Map<string, ProjectComment[]>();
 
+type DbCommentRow = {
+  id: string;
+  project_id: string;
+  user_id: string;
+  user_name: string | null;
+  text: string;
+  selection: any | null;
+  mentions: string[] | null;
+  thread_id: string;
+  parent_id: string | null;
+  status: string;
+  resolved_by: string | null;
+  resolved_at: string | null;
+  format: string | null;
+  attachments: any | null;
+  task_id: string | null;
+  created_at: string | null;
+};
+
+const useSupabase = !!supabaseAdmin;
+
+const mapRowToComment = (row: DbCommentRow): ProjectComment => ({
+  id: row.id,
+  projectId: row.project_id,
+  userId: row.user_id,
+  userName: row.user_name || 'User',
+  text: row.text,
+  selection: row.selection || undefined,
+  mentions: row.mentions || undefined,
+  threadId: row.thread_id,
+  parentId: row.parent_id,
+  status: row.status as CommentStatus,
+  resolvedBy: row.resolved_by || undefined,
+  resolvedAt: row.resolved_at ? new Date(row.resolved_at).getTime() : undefined,
+  createdAt: row.created_at ? new Date(row.created_at).getTime() : Date.now(),
+  format: (row.format as any) || 'plain',
+  attachments: row.attachments || undefined,
+  taskId: row.task_id || undefined
+});
+
+export async function loadProjectCommentsFromSupabase(projectId: string): Promise<void> {
+  if (!useSupabase) return;
+  if (projectComments.has(projectId)) return;
+
+  try {
+    const { data, error } = await supabaseAdmin!
+      .from('project_comments')
+      .select('*')
+      .eq('project_id', projectId)
+      .order('created_at', { ascending: true });
+
+    if (error) {
+      console.error('[Supabase] loadProjectCommentsFromSupabase error', error);
+      return;
+    }
+
+    const comments = ((data || []) as DbCommentRow[]).map(mapRowToComment);
+    projectComments.set(projectId, comments);
+  } catch (err) {
+    console.error('[Supabase] loadProjectCommentsFromSupabase unexpected error', err);
+  }
+}
+
 export function listProjectComments(projectId: string): ProjectComment[] {
   return [...(projectComments.get(projectId) || [])];
 }
@@ -44,6 +108,42 @@ export function addProjectComment(comment: ProjectComment): ProjectComment {
   const existing = projectComments.get(comment.projectId) || [];
   const updated = [...existing, comment];
   projectComments.set(comment.projectId, updated);
+
+  if (useSupabase) {
+    (async () => {
+      try {
+        const payload = {
+          id: comment.id,
+          project_id: comment.projectId,
+          user_id: comment.userId,
+          user_name: comment.userName,
+          text: comment.text,
+          selection: comment.selection || null,
+          mentions: comment.mentions || null,
+          thread_id: comment.threadId,
+          parent_id: comment.parentId ?? null,
+          status: comment.status,
+          resolved_by: comment.resolvedBy ?? null,
+          resolved_at: comment.resolvedAt
+            ? new Date(comment.resolvedAt).toISOString()
+            : null,
+          format: comment.format || 'plain',
+          attachments: comment.attachments || null,
+          task_id: comment.taskId ?? null,
+          created_at: new Date(comment.createdAt).toISOString()
+        };
+        const { error } = await supabaseAdmin!
+          .from('project_comments')
+          .insert(payload);
+        if (error) {
+          console.error('[Supabase] addProjectComment error', error);
+        }
+      } catch (err) {
+        console.error('[Supabase] addProjectComment unexpected error', err);
+      }
+    })();
+  }
+
   return comment;
 }
 
@@ -68,11 +168,60 @@ export function updateProjectComment(
     return null;
   }
   projectComments.set(projectId, next);
+
+  if (updatedComment && useSupabase) {
+    (async () => {
+      try {
+        const patch: Partial<DbCommentRow> = {
+          text: updatedComment.text,
+          selection: updatedComment.selection || null,
+          mentions: updatedComment.mentions || null,
+          thread_id: updatedComment.threadId,
+          parent_id: updatedComment.parentId ?? null,
+          status: updatedComment.status,
+          resolved_by: updatedComment.resolvedBy ?? null,
+          resolved_at: updatedComment.resolvedAt
+            ? new Date(updatedComment.resolvedAt).toISOString()
+            : null,
+          format: updatedComment.format || 'plain',
+          attachments: updatedComment.attachments || null,
+          task_id: updatedComment.taskId ?? null
+        };
+        const { error } = await supabaseAdmin!
+          .from('project_comments')
+          .update(patch)
+          .eq('id', commentId)
+          .eq('project_id', projectId);
+        if (error) {
+          console.error('[Supabase] updateProjectComment error', error);
+        }
+      } catch (err) {
+        console.error('[Supabase] updateProjectComment unexpected error', err);
+      }
+    })();
+  }
+
   return updatedComment;
 }
 
 export function clearProjectComments(projectId: string): void {
   projectComments.delete(projectId);
+
+  if (useSupabase) {
+    (async () => {
+      try {
+        const { error } = await supabaseAdmin!
+          .from('project_comments')
+          .delete()
+          .eq('project_id', projectId);
+        if (error) {
+          console.error('[Supabase] clearProjectComments error', error);
+        }
+      } catch (err) {
+        console.error('[Supabase] clearProjectComments unexpected error', err);
+      }
+    })();
+  }
 }
 
 export interface SectionLock {
@@ -87,6 +236,17 @@ export interface SectionLock {
 
 const LOCK_DURATION_MS = 30 * 1000;
 const projectLocks = new Map<string, SectionLock[]>();
+
+type DbLockRow = {
+  id: string;
+  project_id: string;
+  section_id: string;
+  range: any;
+  user_id: string;
+  user_name: string | null;
+  expires_at: string;
+  created_at: string | null;
+};
 
 const rangesOverlap = (a: { start: number; end: number }, b: { start: number; end: number }): boolean => {
   return Math.max(a.start, b.start) < Math.min(a.end, b.end);
@@ -114,6 +274,37 @@ const cleanupExpiredLocks = (projectId?: string): string[] => {
   });
   return affected;
 };
+
+export async function loadSectionLocksFromSupabase(projectId: string): Promise<void> {
+  if (!useSupabase) return;
+
+  try {
+    const now = Date.now();
+    const { data, error } = await supabaseAdmin!
+      .from('section_locks')
+      .select('*')
+      .eq('project_id', projectId)
+      .gt('expires_at', new Date(now).toISOString());
+
+    if (error) {
+      console.error('[Supabase] loadSectionLocksFromSupabase error', error);
+      return;
+    }
+
+    const locks: SectionLock[] = ((data || []) as DbLockRow[]).map((row) => ({
+      id: row.id,
+      projectId: row.project_id,
+      sectionId: row.section_id,
+      range: row.range,
+      userId: row.user_id,
+      userName: row.user_name || 'User',
+      expiresAt: new Date(row.expires_at).getTime()
+    }));
+    projectLocks.set(projectId, locks);
+  } catch (err) {
+    console.error('[Supabase] loadSectionLocksFromSupabase unexpected error', err);
+  }
+}
 
 export function listSectionLocks(projectId: string): SectionLock[] {
   cleanupExpiredLocks(projectId);
@@ -156,6 +347,32 @@ export function acquireSectionLock(params: {
   };
 
   projectLocks.set(projectId, [...nextLocks, lock]);
+
+  if (useSupabase) {
+    (async () => {
+      try {
+        const payload: Partial<DbLockRow> = {
+          id: lock.id,
+          project_id: lock.projectId,
+          section_id: lock.sectionId,
+          range: lock.range,
+          user_id: lock.userId,
+          user_name: lock.userName,
+          expires_at: new Date(lock.expiresAt).toISOString(),
+          created_at: new Date().toISOString()
+        };
+        const { error } = await supabaseAdmin!
+          .from('section_locks')
+          .insert(payload);
+        if (error) {
+          console.error('[Supabase] acquireSectionLock error', error);
+        }
+      } catch (err) {
+        console.error('[Supabase] acquireSectionLock unexpected error', err);
+      }
+    })();
+  }
+
   return { lock };
 }
 
@@ -179,6 +396,25 @@ export function renewSectionLock(
     return null;
   }
   projectLocks.set(projectId, next);
+
+  if (updatedLock && useSupabase) {
+    (async () => {
+      try {
+        const { error } = await supabaseAdmin!
+          .from('section_locks')
+          .update({
+            expires_at: new Date(updatedLock!.expiresAt).toISOString()
+          })
+          .eq('id', updatedLock!.id)
+          .eq('project_id', projectId);
+        if (error) {
+          console.error('[Supabase] renewSectionLock error', error);
+        }
+      } catch (err) {
+        console.error('[Supabase] renewSectionLock unexpected error', err);
+      }
+    })();
+  }
   return updatedLock;
 }
 
@@ -202,6 +438,23 @@ export function releaseSectionLock(
     return false;
   });
   projectLocks.set(projectId, next);
+
+  if (removed && useSupabase) {
+    (async () => {
+      try {
+        const { error } = await supabaseAdmin!
+          .from('section_locks')
+          .delete()
+          .eq('id', removed!.id)
+          .eq('project_id', projectId);
+        if (error) {
+          console.error('[Supabase] releaseSectionLock error', error);
+        }
+      } catch (err) {
+        console.error('[Supabase] releaseSectionLock unexpected error', err);
+      }
+    })();
+  }
   return removed;
 }
 
@@ -211,6 +464,23 @@ export function releaseLocksForUser(projectId: string, userId: string): SectionL
   const released = locks.filter((lock) => lock.userId === userId);
   const next = locks.filter((lock) => lock.userId !== userId);
   projectLocks.set(projectId, next);
+
+  if (released.length && useSupabase) {
+    (async () => {
+      try {
+        const ids = released.map((l) => l.id);
+        const { error } = await supabaseAdmin!
+          .from('section_locks')
+          .delete()
+          .in('id', ids);
+        if (error) {
+          console.error('[Supabase] releaseLocksForUser error', error);
+        }
+      } catch (err) {
+        console.error('[Supabase] releaseLocksForUser unexpected error', err);
+      }
+    })();
+  }
   return released;
 }
 

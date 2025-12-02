@@ -12,7 +12,8 @@ import Help from './pages/Help';
 import Resources from './pages/Resources';
 import Updates from './pages/Updates';
 import Tutorial from './pages/Tutorial';
-import { resumeSession } from './api/authApi';
+import Settings from './pages/Settings';
+import { resumeSession, fetchCurrentUser } from './api/authApi';
 import { useAuthStore } from './store/authStore';
 import { migrateLegacyLocalStorage } from './utils/localMigration';
 import NotificationSystem from './components/NotificationSystem';
@@ -38,7 +39,20 @@ function OAuthCallback() {
       setToken(token);
       // Store token in localStorage
       localStorage.setItem('auth_token', token);
-      navigate('/dashboard');
+      
+      // ✅ P0: 获取用户信息（包括头像）
+      fetchCurrentUser()
+        .then((user) => {
+          if (user) {
+            navigate('/dashboard');
+          } else {
+            navigate('/login?error=user_fetch_failed');
+          }
+        })
+        .catch((error) => {
+          console.error('Failed to fetch user after OAuth:', error);
+          navigate('/login?error=user_fetch_failed');
+        });
     } else {
       navigate('/login?error=no_token');
     }
@@ -63,9 +77,9 @@ function App() {
   }, [token]);
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col">
+    <div className="min-h-screen text-slate-900 flex flex-col" style={{ background: 'transparent' }}>
       <Header />
-      <main className="flex-1">
+      <main className="flex-1" style={{ background: 'transparent' }}>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/generator" element={<Generator />} />
@@ -77,6 +91,7 @@ function App() {
           <Route path="/tutorials/:slug" element={<Tutorial />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/terms" element={<Terms />} />
+          <Route path="/settings" element={<Settings />} />
           <Route path="/auth/callback" element={<OAuthCallback />} />
         </Routes>
       </main>
