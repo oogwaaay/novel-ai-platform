@@ -6,8 +6,8 @@ import LoginModal from './LoginModal';
 
 const navLinks = [
   { to: '/generator', label: 'Generator' },
-  { to: '/pricing', label: 'Pricing' },
   { to: '/dashboard', label: 'Dashboard' },
+  { to: '/pricing', label: 'Pricing' },
   { to: '/help', label: 'Help' },
   { to: '/resources', label: 'Resources' }
 ];
