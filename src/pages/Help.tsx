@@ -256,8 +256,8 @@ export default function Help() {
   return (
     <div>
       <SEO
-        title="Help & Templates - Novel AI Workspace"
-        description="Learn how to use the Novel AI workspace, browse story templates, and read answers to common questions."
+        title="Help & Templates - Scribely Workspace"
+        description="Learn how to use the Scribely workspace, browse story templates, and read answers to common questions."
       />
       <WorkspaceView blocks={helpBlocks} className="space-y-16" />
 

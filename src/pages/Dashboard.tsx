@@ -673,7 +673,7 @@ export default function Dashboard() {
           '@type': 'WebPage',
           name: 'Dashboard - Scribely',
           description: 'Manage your AI-generated novels and projects with Scribely, your novel ai workspace',
-          url: 'https://novelai.io/dashboard'
+          url: 'https://scribelydesigns.top/dashboard'
         }}
       />
       <div className="max-w-6xl mx-auto px-4">

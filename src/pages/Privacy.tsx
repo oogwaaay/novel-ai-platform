@@ -7,19 +7,19 @@ export default function Privacy() {
   return (
     <div className="bg-white min-h-screen py-16">
       <SEO
-        title="Privacy Policy - Novel AI"
-        description="Privacy Policy for Novel AI. Learn how we collect, use, and protect your data."
-        keywords="privacy policy, data protection, novel ai"
+        title="Privacy Policy - Scribely"
+        description="Privacy Policy for Scribely. Learn how we collect, use, and protect your data."
+        keywords="privacy policy, data protection, scribely"
         jsonLd={{
           '@context': 'https://schema.org',
           '@type': 'PrivacyPolicy',
-          name: 'Novel AI Privacy Policy',
-          url: 'https://novelai.io/privacy',
+          name: 'Scribely Privacy Policy',
+          url: 'https://scribelydesigns.top/privacy',
           dateModified: lastUpdated,
           publisher: {
             '@type': 'Organization',
-            name: 'Novel AI',
-            url: 'https://novelai.io'
+            name: 'Scribely',
+            url: 'https://scribelydesigns.top'
           }
         }}
       />
@@ -31,7 +31,7 @@ export default function Privacy() {
         <div className="prose prose-slate max-w-none space-y-6 text-slate-600">
           <p className="text-sm text-slate-500">Last updated: {lastUpdated}</p>
           <p>
-            At Novel AI, we take your privacy seriously. This Privacy Policy explains how we collect, use, and protect
+            At Scribely, we take your privacy seriously. This Privacy Policy explains how we collect, use, and protect
             your information when you use our website and services.
           </p>
 
@@ -55,7 +55,7 @@ export default function Privacy() {
           <h2 className="text-2xl font-semibold text-slate-900 mt-8 mb-4">How We Use Your Information</h2>
           <p>We use the information we collect in order to:</p>
           <ul>
-            <li>Provide and maintain the Novel AI service, including saving your projects and settings.</li>
+            <li>Provide and maintain the Scribely service, including saving your projects and settings.</li>
             <li>Improve the product experience, such as optimizing performance and understanding feature adoption.</li>
             <li>Communicate with you about updates, support tickets, and important service notices.</li>
             <li>Enforce subscription limits and prevent abuse or unauthorized access.</li>

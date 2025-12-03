@@ -215,6 +215,7 @@ export default function Home() {
           id: 'home-1',
           name: 'Sarah Chen',
           role: 'Fantasy Novelist',
+          avatar: '/images/testimonials/sarah-chen.png',
           tier: 'pro',
           verified: true,
           rating: 5,
@@ -224,6 +225,7 @@ export default function Home() {
           id: 'home-2',
           name: 'Marcus Johnson',
           role: 'Indie Author',
+          avatar: '/images/testimonials/marcus-johnson.png',
           tier: 'unlimited',
           verified: true,
           rating: 5,
@@ -233,6 +235,7 @@ export default function Home() {
           id: 'home-3',
           name: 'Emma Rodriguez',
           role: 'Creative Writing Student',
+          avatar: '/images/testimonials/emma-rodriguez.png',
           tier: 'starter',
           verified: true,
           rating: 5,
@@ -242,6 +245,7 @@ export default function Home() {
           id: 'home-4',
           name: 'David Kim',
           role: 'Screenwriter & Novelist',
+          avatar: '/images/testimonials/david-kim.png',
           tier: 'pro',
           verified: true,
           rating: 5,
@@ -256,15 +260,15 @@ export default function Home() {
   return (
     <div>
       <SEO
-        title="Novel AI - AI Novel Generator | Create Stories with AI"
+        title="Scribely - AI Novel Generator | Create Stories with AI"
         description="Generate complete novels with AI in minutes. Free AI novel generator for writers. Create novels about AI, fantasy, romance, mystery, and more."
-        keywords="novel ai, ai novel generator, ai novel writer, novels about ai, ai story generator, ai book generator"
+        keywords="scribely, ai novel generator, ai novel writer, novels about ai, ai story generator, ai book generator"
         jsonLd={{
           '@context': 'https://schema.org',
           '@type': 'WebApplication',
-          name: 'NovelAI',
+          name: 'Scribely',
           description: 'AI-powered novel writing assistant for creating, managing, and refining your stories',
-          url: 'https://novelai.io',
+          url: 'https://scribelydesigns.top',
           applicationCategory: 'WritingApplication',
           operatingSystem: 'Web',
           offers: {

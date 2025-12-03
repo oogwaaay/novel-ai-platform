@@ -18,7 +18,7 @@ const sanitize = (text: string) =>
 
 export async function buildEpub({
   title,
-  author = 'Novel AI',
+  author = 'Scribely',
   chapters,
   fallbackText
 }: EpubOptions): Promise<Blob> {

@@ -157,7 +157,7 @@ export default function Pricing() {
       anchorId: 'why-us',
       className: 'max-w-6xl mx-auto px-4',
       props: {
-        title: 'Why choose Novel AI?',
+        title: 'Why choose Scribely?',
         items: [
           {
             title: 'Knowledge Base System',
@@ -198,6 +198,7 @@ export default function Pricing() {
             id: 'pricing-1',
             name: 'Alex Thompson',
             role: 'Published Author',
+            avatar: '/images/testimonials/alex-thompson.png',
             tier: 'pro',
             verified: true,
             rating: 5,
@@ -207,6 +208,7 @@ export default function Pricing() {
             id: 'pricing-2',
             name: 'Lisa Park',
             role: 'Writing Coach',
+            avatar: '/images/testimonials/lisa-park.png',
             tier: 'unlimited',
             verified: true,
             rating: 5,
@@ -216,6 +218,7 @@ export default function Pricing() {
             id: 'pricing-3',
             name: 'James Wilson',
             role: 'Self-Published Author',
+            avatar: '/images/testimonials/james-wilson.png',
             tier: 'starter',
             verified: true,
             rating: 5,
@@ -225,6 +228,7 @@ export default function Pricing() {
             id: 'pricing-4',
             name: 'Maria Santos',
             role: 'Romance Novelist',
+            avatar: '/images/testimonials/maria-santos.png',
             tier: 'pro',
             verified: true,
             rating: 5,
@@ -234,6 +238,7 @@ export default function Pricing() {
             id: 'pricing-5',
             name: 'Robert Chen',
             role: 'Writing Team Lead',
+            avatar: '/images/testimonials/robert-chen.png',
             tier: 'unlimited',
             verified: true,
             rating: 5,
@@ -243,6 +248,7 @@ export default function Pricing() {
             id: 'pricing-6',
             name: 'Amanda Foster',
             role: 'Mystery Writer',
+            avatar: '/images/testimonials/amanda-foster.png',
             tier: 'pro',
             verified: true,
             rating: 5,
@@ -271,21 +277,21 @@ export default function Pricing() {
   return (
     <div className="min-h-screen py-16">
       <SEO
-        title="Pricing - AI Novel Generator Plans | Novel AI"
+        title="Pricing - AI Novel Generator Plans | Scribely"
         description="Choose the right plan for your writing workflow. Free, Starter, Pro, and Unlimited plans with transparent pricing. Start free or upgrade for advanced features."
-        keywords="novel ai pricing, ai novel generator pricing, writing tool pricing, ai writer subscription, novel generator plans"
+        keywords="scribely pricing, ai novel generator pricing, writing tool pricing, ai writer subscription, novel generator plans"
         jsonLd={[
           {
             '@context': 'https://schema.org',
             '@type': 'WebPage',
-            name: 'Pricing - NovelAI',
+            name: 'Pricing - Scribely',
             description: 'Choose the right plan for your writing workflow',
-            url: 'https://novelai.io/pricing'
+            url: 'https://scribelydesigns.top/pricing'
           },
           {
             '@context': 'https://schema.org',
             '@type': 'SoftwareApplication',
-            name: 'NovelAI',
+            name: 'Scribely',
             applicationCategory: 'WritingApplication',
             offers: [
               {

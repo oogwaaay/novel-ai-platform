@@ -7,19 +7,19 @@ export default function Terms() {
   return (
     <div className="bg-white min-h-screen py-16">
       <SEO
-        title="Terms of Service - Novel AI"
-        description="Terms of Service for Novel AI. Read the rules and conditions for using our writing tools."
-        keywords="terms of service, terms and conditions, novel ai"
+        title="Terms of Service - Scribely"
+        description="Terms of Service for Scribely. Read the rules and conditions for using our writing tools."
+        keywords="terms of service, terms and conditions, scribely"
         jsonLd={{
           '@context': 'https://schema.org',
           '@type': 'TermsOfService',
-          name: 'Novel AI Terms of Service',
-          url: 'https://novelai.io/terms',
+          name: 'Scribely Terms of Service',
+          url: 'https://scribelydesigns.top/terms',
           dateModified: lastUpdated,
           publisher: {
             '@type': 'Organization',
-            name: 'Novel AI',
-            url: 'https://novelai.io'
+            name: 'Scribely',
+            url: 'https://scribelydesigns.top'
           }
         }}
       />
@@ -31,7 +31,7 @@ export default function Terms() {
         <div className="prose prose-slate max-w-none space-y-6 text-slate-600">
           <p className="text-sm text-slate-500">Last updated: {lastUpdated}</p>
           <p>
-            By accessing and using Novel AI, you agree to be bound by these Terms of Service. If you do not agree to
+            By accessing and using Scribely, you agree to be bound by these Terms of Service. If you do not agree to
             these terms, you should not use the service.
           </p>
 
@@ -50,7 +50,7 @@ export default function Terms() {
 
           <h2 className="text-2xl font-semibold text-slate-900 mt-8 mb-4">User Content & Intellectual Property</h2>
           <p>
-            The content you create with Novel AI belongs to you. By using the service, you grant us a limited license to
+            The content you create with Scribely belongs to you. By using the service, you grant us a limited license to
             store, process, and back up your content solely for the purpose of operating and improving the product.
           </p>
 
@@ -68,7 +68,7 @@ export default function Terms() {
 
           <h2 className="text-2xl font-semibold text-slate-900 mt-8 mb-4">Limitation of Liability</h2>
           <p>
-            Novel AI is provided &quot;as is&quot; without warranties of any kind, express or implied. To the maximum
+            Scribely is provided &quot;as is&quot; without warranties of any kind, express or implied. To the maximum
             extent permitted by law, we are not liable for indirect, incidental, or consequential damages arising from
             your use of the service.
           </p>
