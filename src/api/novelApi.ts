@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { useAuthStore } from '../store/authStore';
 
 const API_BASE = import.meta.env.VITE_API_URL || '/api';
 
@@ -41,7 +42,7 @@ export interface NovelResponse {
 }
 
 export async function generateNovel(params: GenerateNovelParams): Promise<NovelResponse> {
-  const token = localStorage.getItem('token');
+  const token = useAuthStore.getState().token;
   const headers: Record<string, string> = {
     'Content-Type': 'application/json'
   };
@@ -82,7 +83,7 @@ export async function continueNovel(
   contextStrategy?: 'precision' | 'balanced' | 'extended',
   contextWindowWords?: number
 ): Promise<ContinueNovelResponse> {
-  const token = localStorage.getItem('token');
+  const token = useAuthStore.getState().token;
   const headers: Record<string, string> = {
     'Content-Type': 'application/json'
   };
@@ -165,7 +166,7 @@ export async function assistWithText(
     contextWindowWords?: number;
   } = {}
 ): Promise<AssistResponse> {
-  const token = localStorage.getItem('token');
+  const token = useAuthStore.getState().token;
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
   if (token && token !== 'null' && token !== 'undefined') {
     headers['Authorization'] = `Bearer ${token}`;
@@ -192,7 +193,7 @@ export async function analyzeReadingInsights(
   characters: { summary: string; detail: string },
   sampleText: string
 ): Promise<ReadingInsightsAnalysis> {
-  const token = localStorage.getItem('token');
+  const token = useAuthStore.getState().token;
   const headers: Record<string, string> = {
     'Content-Type': 'application/json'
   };
@@ -215,7 +216,7 @@ export interface StyleAnalysisResponse {
 }
 
 export async function analyzeStyleWithLLM(text: string): Promise<StyleAnalysisResponse> {
-  const token = localStorage.getItem('token');
+  const token = useAuthStore.getState().token;
   const headers: Record<string, string> = {
     'Content-Type': 'application/json'
   };
@@ -245,7 +246,7 @@ export interface ExtractKnowledgeResponse {
 }
 
 export async function extractKnowledgeFromText(text: string): Promise<ExtractKnowledgeResponse> {
-  const token = localStorage.getItem('token');
+  const token = useAuthStore.getState().token;
   const headers: Record<string, string> = {
     'Content-Type': 'application/json'
   };
