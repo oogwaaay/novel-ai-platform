@@ -13,7 +13,7 @@ interface SEOProps {
   modifiedTime?: string;
 }
 
-const SITE_URL = 'https://novelai.io';
+const SITE_URL = 'https://scribelydesigns.top';
 const DEFAULT_IMAGE = `${SITE_URL}/og-image.png`;
 
 export function SEO({

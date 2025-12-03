@@ -1,6 +1,8 @@
-# Novel AI Platform
+# Scribely - AI Novel Writing Platform
 
 AI Novel Generator - Create complete novels with AI in minutes.
+
+🌐 **Live Demo**: [https://scribelydesigns.top](https://scribelydesigns.top)
 
 ## Features
 
@@ -55,6 +57,15 @@ npm run dev
 
 ## Deployment
 
-Frontend: Deploy to Vercel/Netlify
+**Production Environment**: [https://scribelydesigns.top](https://scribelydesigns.top)
+
+Frontend: Deploy to Vercel/Netlify  
 Backend: Deploy to Railway/Render
+
+## Links
+
+- 🌐 **Website**: [https://scribelydesigns.top](https://scribelydesigns.top)
+- 📖 **Documentation**: [https://scribelydesigns.top/help](https://scribelydesigns.top/help)
+- 💰 **Pricing**: [https://scribelydesigns.top/pricing](https://scribelydesigns.top/pricing)
+- 📚 **Resources**: [https://scribelydesigns.top/resources](https://scribelydesigns.top/resources)
 
