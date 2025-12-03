@@ -18,6 +18,7 @@ import { useCapabilities } from '../hooks/useCapabilities';
 import UpgradePrompt from '../components/UpgradePrompt';
 import { useSubscription } from '../hooks/useSubscription';
 import { migrateLocalStorageToBackend, needsMigration } from '../utils/dataMigration';
+import { countWords } from '../utils/wordCount';
 
 const HISTORY_KEY = 'novel-ai-history';
 
@@ -180,8 +181,8 @@ export default function Dashboard() {
         title: p.title,
         updatedAt: p.updatedAt,
         wordCount: p.chapters && p.chapters.length > 0
-          ? p.chapters.reduce((sum, ch) => sum + Math.round((ch.content || '').split(/\s+/).filter(Boolean).length), 0)
-          : Math.round((p.content || '').split(/\s+/).filter(Boolean).length),
+          ? p.chapters.reduce((sum, ch) => sum + countWords(ch.content || ''), 0)
+          : countWords(p.content || ''),
         isBackend: true as const,
         project: p
       }));
@@ -191,13 +192,28 @@ export default function Dashboard() {
         title: snapshot.label || (snapshot.idea ? snapshot.idea.slice(0, 50) : 'Untitled'),
         updatedAt: snapshot.timestamp,
         wordCount: snapshot.chapters && snapshot.chapters.length > 0
-          ? snapshot.chapters.reduce((sum, ch) => sum + Math.round((ch.content || '').split(/\s+/).filter(Boolean).length), 0)
-          : Math.round((snapshot.content || '').split(/\s+/).filter(Boolean).length),
+          ? snapshot.chapters.reduce((sum, ch) => sum + countWords(ch.content || ''), 0)
+          : countWords(snapshot.content || ''),
         isBackend: false as const,
         snapshot
       }));
 
-      return [...backendProjectsList, ...localProjectsList].sort((a, b) => b.updatedAt - a.updatedAt);
+      // 去重：如果ID相同，优先保留后端项目
+      const combined = [...backendProjectsList, ...localProjectsList];
+      const uniqueProjects = combined.reduce((acc, project) => {
+        const existing = acc.find(p => p.id === project.id);
+        if (!existing) {
+          acc.push(project);
+        } else if (existing.isBackend === false && project.isBackend === true) {
+          // 如果存在的是本地项目而当前是后端项目，则替换
+          const index = acc.indexOf(existing);
+          acc[index] = project;
+        }
+        // 如果存在的是后端项目，则保留现有的，不添加新的
+        return acc;
+      }, [] as CombinedProject[]);
+
+      return uniqueProjects.sort((a, b) => b.updatedAt - a.updatedAt);
     } catch (error) {
       console.error('Error combining projects:', error);
       return [];

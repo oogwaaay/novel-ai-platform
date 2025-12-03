@@ -1,5 +1,6 @@
 // Style analysis utilities - Extract writing style from text
 import type { StyleAnalysis, SceneType, ContextualStyleAdjustment } from '../types/style';
+import { countWords } from './wordCount';
 
 /**
  * Analyze writing style from text sample
@@ -19,10 +20,11 @@ export function analyzeWritingStyle(text: string): StyleAnalysis {
   }
 
   const sentences = text.match(/[^.!?]+[.!?]+/g) || [];
-  const words = text.split(/\s+/).filter(w => w.length > 0);
-  const avgSentenceLength = words.length / Math.max(sentences.length, 1);
+  const words = text.split(/\s+/).filter(w => w.length > 0); // Keep for word-level analysis
+  const wordCount = countWords(text); // Use for overall count
+  const avgSentenceLength = wordCount / Math.max(sentences.length, 1);
   const paragraphs = text.split(/\n\s*\n/).filter(p => p.trim().length > 0);
-  const avgParagraphLength = words.length / Math.max(paragraphs.length, 1);
+  const avgParagraphLength = wordCount / Math.max(paragraphs.length, 1);
 
   // Enhanced tone analysis with more markers
   const formalMarkers = /\b(shall|must|therefore|furthermore|indeed|consequently|moreover|nevertheless|thus|hence)\b/gi;

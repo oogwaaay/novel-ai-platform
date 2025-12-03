@@ -35,19 +35,14 @@ import { useSubscription } from '../hooks/useSubscription';
 import { useSubscriptionStore } from '../store/subscriptionStore';
 import SubscriptionBenefits from '../components/SubscriptionBenefits';
 import PlanDrawer from '../components/PlanDrawer';
-import CharacterPanel from '../components/CharacterPanel';
 import type { Character } from '../types/character';
-import StyleMemoryPanel from '../components/StyleMemoryPanel';
 import type { WritingStyle } from '../types/style';
-import KnowledgeDock from '../components/KnowledgeDock';
 import type { KnowledgeEntry } from '../types/knowledge';
-import StyleTemplateLibrary from '../components/StyleTemplateLibrary';
 import type { StyleTemplate } from '../types/templates';
 import PublishModal from '../components/PublishModal';
 import CollaborationPanel, { type CollaborationParticipant } from '../components/CollaborationPanel';
 import CollaborationActivityTimeline from '../components/CollaborationActivityTimeline';
 import { buildEpub } from '../utils/epub';
-import BriefPanel from '../components/BriefPanel';
 import { showToast } from '../utils/toast';
 import ContextDrawer from '../components/ContextDrawer';
 import { threeWayMerge } from '../utils/conflictResolution';
@@ -87,6 +82,7 @@ const getCollaborationBaseUrl = () => {
 import { useAuthStore } from '../store/authStore';
 import { useProjectStore } from '../store/projectStore';
 import { useExecutionGraph } from '../hooks/useExecutionGraph';
+import { countWords } from '../utils/wordCount';
 
 type StoredSnapshot = Omit<DraftSnapshot, 'label'> & { label?: string };
 
@@ -193,16 +189,15 @@ const NON_CHARACTER_TOKENS = new Set([
 const escapeRegExp = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 const summarizePacing = (content: string) => {
-  const words = content.split(/\s+/).filter(Boolean);
-  const wordCount = words.length || 1;
+  const wordCount = countWords(content) || 1;
   const sentences = content.split(/[.!?]+/).filter(Boolean);
   const sentenceCount = sentences.length || 1;
   const avgSentenceLength = wordCount / sentenceCount;
   const paragraphs = content.split(/\n{2,}/).filter(Boolean);
   const shortParagraphRatio =
-    paragraphs.length > 0 ? paragraphs.filter((p) => p.split(/\s+/).length < 40).length / paragraphs.length : 0;
+    paragraphs.length > 0 ? paragraphs.filter((p) => countWords(p) < 40).length / paragraphs.length : 0;
 
-  let summary: string;
+  let summary: string = 'Pacing stays balanced with varied beats';
   if (avgSentenceLength <= 12 && shortParagraphRatio > 0.6) {
     summary = 'Pacing feels fast and punchy';
   } else if (avgSentenceLength <= 20) {
@@ -237,16 +232,18 @@ const summarizeTone = (content: string) => {
     if (exclamationDensity > 1) {
       summary = 'Tone spikes into energetic emphasis';
       detail = 'Multiple exclamations per thousand characters';
+      return { summary, detail };
     }
-    summary = summary || 'Tone reads neutral';
-    detail = detail || 'No dominant emotional keywords detected';
+    summary = 'Tone reads neutral';
+    detail = 'No dominant emotional keywords detected';
     return { summary, detail };
   }
 
   summary = `Tone leans ${bestMatch.tone}`;
-  detail = `Triggered by keywords: ${TONE_KEYWORDS.find((bucket) => bucket.tone === bestMatch.tone)
+  const matchedKeywords = TONE_KEYWORDS.find((bucket) => bucket.tone === bestMatch.tone)
     ?.words.filter((word) => lower.includes(word))
-    .join(', ')}`;
+    .join(', ') || 'none';
+  detail = `Triggered by keywords: ${matchedKeywords}`;
 
   return { summary, detail };
 };
@@ -437,8 +434,8 @@ export default function Generator() {
   const calculateProjectTotalPages = useCallback((project: typeof currentProject): number => {
     if (!project) return 0;
     const wordCount = project.chapters.length > 0
-      ? project.chapters.reduce((sum, ch) => sum + Math.round((ch.content || '').split(/\s+/).filter(Boolean).length), 0)
-      : Math.round((project.content || '').split(/\s+/).filter(Boolean).length);
+      ? project.chapters.reduce((sum, ch) => sum + countWords(ch.content || ''), 0)
+      : countWords(project.content || '');
     return Math.ceil(wordCount / 250);
   }, []);
   
@@ -1012,15 +1009,15 @@ const [outlineMapData, setOutlineMapData] = useState<OutlineMapPayload | null>(n
             output = [{ type: 'warning', severity: 'medium', message: String(result) }];
           }
         } else if (action === 'storyTree') {
-          output = Array.isArray(result) ? (result as StoryTreeAct[]) : [result as StoryTreeAct];
+          output = Array.isArray(result) ? (result as StoryTreeAct[]) : [result as unknown as StoryTreeAct];
         } else if (action === 'sceneBeats') {
           output = Array.isArray(result)
             ? (result as SceneBeatSummary[])
-            : [result as SceneBeatSummary];
+            : [result as unknown as SceneBeatSummary];
         } else if (action === 'characterArc') {
           output = Array.isArray(result)
             ? (result as CharacterArcSummary[])
-            : [result as CharacterArcSummary];
+            : [result as unknown as CharacterArcSummary];
         } else {
           output = typeof result === 'string' ? result : JSON.stringify(result);
         }
@@ -1065,13 +1062,17 @@ const [outlineMapData, setOutlineMapData] = useState<OutlineMapPayload | null>(n
 
   const handleCopyAiOutput = useCallback(() => {
     if (aiAssistResult?.status !== 'success' || !aiAssistResult.output) return;
-    navigator?.clipboard?.writeText(aiAssistResult.output).catch(() => {
-      /* ignore */
-    });
+    if (typeof aiAssistResult.output === 'string') {
+      navigator?.clipboard?.writeText(aiAssistResult.output).catch(() => {
+        /* ignore */
+      });
+    }
   }, [aiAssistResult]);
 
   const handleInsertAiOutput = useCallback(() => {
     if (aiAssistResult?.status !== 'success' || !aiAssistResult.output) return;
+    // Only handle string output for text insertion
+    if (typeof aiAssistResult.output !== 'string') return;
     const range = storyEditorRef.current?.getSelectedRange();
     if (range && range.length > 0) {
       // Replace selected text
@@ -1604,6 +1605,18 @@ const [outlineMapData, setOutlineMapData] = useState<OutlineMapPayload | null>(n
     };
   }, [searchParams, isAuthenticated, currentProject?.id, setCurrentProject]);
 
+  // 保持URL与currentProject同步：如果currentProject存在但URL中没有project参数，添加它
+  useEffect(() => {
+    if (!isAuthenticated || !currentProject?.id) return;
+    const projectId = searchParams.get('project');
+    if (currentProject.id && projectId !== currentProject.id) {
+      // 如果URL中没有project参数或参数不匹配，更新URL
+      const newParams = new URLSearchParams(searchParams);
+      newParams.set('project', currentProject.id);
+      navigate(`/generator?${newParams.toString()}`, { replace: true });
+    }
+  }, [currentProject?.id, isAuthenticated, searchParams, navigate]);
+
   useEffect(() => {
     if (autoRunRef.current) return;
     const mode = autoRunMode;
@@ -1886,7 +1899,7 @@ const [outlineMapData, setOutlineMapData] = useState<OutlineMapPayload | null>(n
   // Memoized word count for smart recommendation (performance optimization)
   const draftWordCount = useMemo(() => {
     if (!currentDraftContent || currentDraftContent.trim().length === 0) return 0;
-    return currentDraftContent.split(/\s+/).filter(Boolean).length;
+    return countWords(currentDraftContent);
   }, [currentDraftContent]);
 
   // Detect character mentions in content for smart suggestions
@@ -2099,8 +2112,7 @@ const [outlineMapData, setOutlineMapData] = useState<OutlineMapPayload | null>(n
   const exportFilenameBase = useMemo(() => buildFilenameBase(idea), [idea]);
   const hasExportableContent = Boolean(markdownDocument);
 
-  const chapterWordCount = (content: string) =>
-    Math.round(content.split(/\s+/).filter(Boolean).length);
+  const chapterWordCount = (content: string) => countWords(content);
 
   const convertChapterToOutline = (chapter: Chapter): string[] => {
     const paragraphs = chapter.content.split(/\n{2,}/).filter(Boolean);
@@ -2358,12 +2370,13 @@ const [outlineMapData, setOutlineMapData] = useState<OutlineMapPayload | null>(n
           parentId
         });
         setCollabComments((prev) => [...prev, created]);
+        if (!currentProject?.id) return;
         setCollabActivities((prev) =>
           [
             {
               id: `local-${created.id}`,
-              projectId: project.id,
-              type: 'comment_added',
+              projectId: currentProject.id,
+              type: 'comment_added' as const,
               userId: user?.id,
               userName: user?.name || user?.email || 'You',
               threadId: created.threadId,
@@ -2422,8 +2435,8 @@ const [outlineMapData, setOutlineMapData] = useState<OutlineMapPayload | null>(n
             [
               {
                 id: `local-activity-${updated.id}`,
-                projectId: project.id,
-                type: 'comment_resolved',
+                projectId: currentProject.id,
+                type: 'comment_resolved' as const,
                 userId: user?.id,
                 userName: user?.name || user?.email || 'You',
                 threadId: updated.threadId,
@@ -2449,10 +2462,12 @@ const [outlineMapData, setOutlineMapData] = useState<OutlineMapPayload | null>(n
       if (!comment.selection) return;
       const targetSection = comment.selection.sectionId || 'draft';
       const highlight = () => {
-        const length = Math.max(0, comment.selection.end - comment.selection.start);
-        if (length > 0) {
+        const selection = comment.selection;
+        if (!selection) return;
+        const length = Math.max(0, (selection.end || 0) - (selection.start || 0));
+        if (length > 0 && selection.start !== undefined) {
           storyEditorRef.current?.highlightRange({
-            start: comment.selection.start,
+            start: selection.start,
             length
           });
         }
@@ -2922,7 +2937,7 @@ const [outlineMapData, setOutlineMapData] = useState<OutlineMapPayload | null>(n
           {/* Top Toolbar */}
           <GlassCard className="flex flex-col gap-3 p-4 lg:flex-row lg:items-center lg:justify-between">
             {/* Debug: Temporary subscription switcher */}
-            {process.env.NODE_ENV === 'development' && (
+            {import.meta.env.DEV && (
               <div className="mb-2 p-2 bg-yellow-50 border border-yellow-200 rounded-lg text-xs">
                 <p className="text-yellow-800 font-semibold mb-1">Debug: Current tier = {tier}</p>
                 <div className="flex gap-2">
@@ -3285,53 +3300,6 @@ const [outlineMapData, setOutlineMapData] = useState<OutlineMapPayload | null>(n
                 </div>
               </GlassCard>
             )}
-            {!canUseCollaboration && (
-              <GlassCard
-                className="mt-6 p-6 border-2 border-amber-200 bg-gradient-to-br from-amber-50/50 to-white"
-                id="collaboration"
-              >
-                <div className="flex items-start gap-4">
-                  <div className="flex-shrink-0">
-                    <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center">
-                      <svg className="w-6 h-6 text-amber-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-                      </svg>
-                    </div>
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-slate-900">Unlock real-time collaboration</h3>
-                    <p className="text-sm text-slate-600 mt-1">
-                      Upgrade to <span className="font-semibold text-indigo-600">Unlimited</span> to collaborate with your team:
-                    </p>
-                    <ul className="mt-3 text-sm text-slate-600 space-y-1.5">
-                      <li className="flex items-center gap-2">
-                        <svg className="w-4 h-4 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                        </svg>
-                        Real-time comments and @mentions
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <svg className="w-4 h-4 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                        </svg>
-                        Shared cursors and section locks
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <svg className="w-4 h-4 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                        </svg>
-                        Activity timeline and notifications
-                      </li>
-                    </ul>
-                    <div className="mt-4">
-                      <PrimaryButton onClick={() => navigate('/pricing')} className="text-sm">
-                        Upgrade to Unlimited
-                      </PrimaryButton>
-                    </div>
-                  </div>
-                </div>
-              </GlassCard>
-            )}
 
             {/* Outline */}
             <section className="rounded-3xl border border-slate-200 bg-white shadow-sm">
@@ -3408,9 +3376,57 @@ const [outlineMapData, setOutlineMapData] = useState<OutlineMapPayload | null>(n
                       ))}
                     </ul>
                   )}
-                  </div>
-                )}
+                </div>
+              )}
             </section>
+
+            {!canUseCollaboration && (
+              <GlassCard
+                className="mt-6 p-6 border-2 border-amber-200 bg-gradient-to-br from-amber-50/50 to-white"
+                id="collaboration"
+              >
+                <div className="flex items-start gap-4">
+                  <div className="flex-shrink-0">
+                    <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center">
+                      <svg className="w-6 h-6 text-amber-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+                      </svg>
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold text-slate-900">Unlock real-time collaboration</h3>
+                    <p className="text-sm text-slate-600 mt-1">
+                      Upgrade to <span className="font-semibold text-indigo-600">Unlimited</span> to collaborate with your team:
+                    </p>
+                    <ul className="mt-3 text-sm text-slate-600 space-y-1.5">
+                      <li className="flex items-center gap-2">
+                        <svg className="w-4 h-4 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                        Real-time comments and @mentions
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <svg className="w-4 h-4 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                        Shared cursors and section locks
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <svg className="w-4 h-4 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                        Activity timeline and notifications
+                      </li>
+                    </ul>
+                    <div className="mt-4">
+                      <PrimaryButton onClick={() => navigate('/pricing')} className="text-sm">
+                        Upgrade to Unlimited
+                      </PrimaryButton>
+                    </div>
+                  </div>
+                </div>
+              </GlassCard>
+            )}
 
             {/* Outline Preview */}
                 {outline && (
@@ -3712,7 +3728,7 @@ const [outlineMapData, setOutlineMapData] = useState<OutlineMapPayload | null>(n
                   {/* Rewrite: Multiple options */}
                   {aiAssistResult.action === 'rewrite' && Array.isArray(aiAssistResult.output) && (
                     <div className="space-y-2">
-                      {aiAssistResult.output.map((option, idx) => (
+                      {(aiAssistResult.output as string[]).map((option, idx) => (
                         <div key={idx} className="bg-white border border-slate-200 rounded-lg p-3">
                           <p className="text-xs text-slate-500 mb-1">Option {idx + 1}</p>
                           <p className="text-sm text-slate-800 whitespace-pre-wrap">{option}</p>
