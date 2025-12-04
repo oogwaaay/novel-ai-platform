@@ -12,7 +12,7 @@ const supportLinks = [
   { label: 'Help Center', description: 'Step-by-step answers, onboarding clips, and template FAQs.', to: '/help' },
   { label: 'Release notes', description: 'See every improvement, hotfix, and UI refresh.', to: '/updates' },
   { label: 'Privacy & terms', description: 'Understand how data is stored, processed, and protected.', to: '/privacy' },
-  { label: 'Contact support', description: 'Need priority help? Email lic85666@gmail.com.', to: 'mailto:lic85666@gmail.com' }
+  { label: 'Contact support', description: 'Need priority help? Email support@scribelydesigns.top.', to: 'mailto:support@scribelydesigns.top' }
 ];
 
 export default function Resources() {

@@ -57,8 +57,8 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <a href="mailto:lic85666@gmail.com" className="hover:text-white transition">
-                  lic85666@gmail.com
+                <a href="mailto:support@scribelydesigns.top" className="hover:text-white transition">
+                  support@scribelydesigns.top
                 </a>
               </li>
             </ul>

@@ -84,7 +84,7 @@ export default function Privacy() {
           <h2 className="text-2xl font-semibold text-slate-900 mt-8 mb-4">Contact Us</h2>
           <p>
             If you have questions about this Privacy Policy or how we handle your data, please contact us at{' '}
-            <a href="mailto:lic85666@gmail.com">lic85666@gmail.com</a>.
+            <a href="mailto:support@scribelydesigns.top">support@scribelydesigns.top</a>.
           </p>
         </div>
       </div>
