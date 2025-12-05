@@ -203,59 +203,59 @@ export default function Home() {
     }
   };
 
-  const testimonialBlock: BlockSchema = {
-    id: 'home-testimonials',
-    type: 'testimonial',
-    className: 'max-w-4xl mx-auto px-4',
-    props: {
-      title: 'Trusted by writers worldwide',
-      layout: 'carousel',
-      testimonials: [
-        {
-          id: 'home-1',
-          name: 'Sarah Chen',
-          role: 'Fantasy Novelist',
-          avatar: '/images/testimonials/sarah-chen.png',
-          tier: 'pro',
-          verified: true,
-          rating: 5,
-          content: 'I\'ve been writing fantasy novels for years, and Scribely is the first tool that actually understands my voice. It remembers how I write dialogue, how I describe scenes, and keeps everything consistent across hundreds of pages. It\'s like having a co-writer who never forgets your style.',
-        },
-        {
-          id: 'home-2',
-          name: 'Marcus Johnson',
-          role: 'Indie Author',
-          avatar: '/images/testimonials/marcus-johnson.png',
-          tier: 'unlimited',
-          verified: true,
-          rating: 5,
-          content: 'Working with my editor used to mean endless email chains and version confusion. Now we collaborate in real-time, leave comments directly in the text, and I can see exactly what changed in each version. It\'s transformed how we work together.',
-        },
-        {
-          id: 'home-3',
-          name: 'Emma Rodriguez',
-          role: 'Creative Writing Student',
-          avatar: '/images/testimonials/emma-rodriguez.png',
-          tier: 'starter',
-          verified: true,
-          rating: 5,
-          content: 'As a student, I can\'t afford expensive writing software. Scribely\'s Starter plan gives me everything I need to practice and improve. The AI suggestions help me understand pacing and character development. It\'s like having a writing tutor available 24/7.',
-        },
-        {
-          id: 'home-4',
-          name: 'David Kim',
-          role: 'Screenwriter & Novelist',
-          avatar: '/images/testimonials/david-kim.png',
-          tier: 'pro',
-          verified: true,
-          rating: 5,
-          content: 'What I love most is how Scribely learns from my previous work. I can write a sci-fi novel and a romance novel, and it adapts to each genre perfectly. The character tracking keeps everyone\'s motivations and relationships clear, even in complex stories.',
-        },
-      ],
-    },
-  };
+  // const testimonialBlock: BlockSchema = {
+  //   id: 'home-testimonials',
+  //   type: 'testimonial',
+  //   className: 'max-w-4xl mx-auto px-4',
+  //   props: {
+  //     title: 'Trusted by writers worldwide',
+  //     layout: 'carousel',
+  //     testimonials: [
+  //       {
+  //         id: 'home-1',
+  //         name: 'Sarah Chen',
+  //         role: 'Fantasy Novelist',
+  //         avatar: '/images/testimonials/sarah-chen.png',
+  //         tier: 'pro',
+  //         verified: true,
+  //         rating: 5,
+  //         content: 'I\'ve been writing fantasy novels for years, and Scribely is the first tool that actually understands my voice. It remembers how I write dialogue, how I describe scenes, and keeps everything consistent across hundreds of pages. It\'s like having a co-writer who never forgets your style.',
+  //       },
+  //       {
+  //         id: 'home-2',
+  //         name: 'Marcus Johnson',
+  //         role: 'Indie Author',
+  //         avatar: '/images/testimonials/marcus-johnson.png',
+  //         tier: 'unlimited',
+  //         verified: true,
+  //         rating: 5,
+  //         content: 'Working with my editor used to mean endless email chains and version confusion. Now we collaborate in real-time, leave comments directly in the text, and I can see exactly what changed in each version. It\'s transformed how we work together.',
+  //       },
+  //       {
+  //         id: 'home-3',
+  //         name: 'Emma Rodriguez',
+  //         role: 'Creative Writing Student',
+  //         avatar: '/images/testimonials/emma-rodriguez.png',
+  //         tier: 'starter',
+  //         verified: true,
+  //         rating: 5,
+  //         content: 'As a student, I can\'t afford expensive writing software. Scribely\'s Starter plan gives me everything I need to practice and improve. The AI suggestions help me understand pacing and character development. It\'s like having a writing tutor available 24/7.',
+  //       },
+  //       {
+  //         id: 'home-4',
+  //         name: 'David Kim',
+  //         role: 'Screenwriter & Novelist',
+  //         avatar: '/images/testimonials/david-kim.png',
+  //         tier: 'pro',
+  //         verified: true,
+  //         rating: 5,
+  //         content: 'What I love most is how Scribely learns from my previous work. I can write a sci-fi novel and a romance novel, and it adapts to each genre perfectly. The character tracking keeps everyone\'s motivations and relationships clear, even in complex stories.',
+  //       },
+  //     ],
+  //   },
+  // };
 
-  const homeBlocks: BlockSchema[] = [heroBlock, testimonialBlock];
+  const homeBlocks: BlockSchema[] = [heroBlock /*, testimonialBlock */];
 
   return (
     <div>
