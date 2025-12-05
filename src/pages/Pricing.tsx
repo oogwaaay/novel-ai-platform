@@ -280,6 +280,7 @@ export default function Pricing() {
         title="Pricing - AI Novel Generator Plans | Scribely"
         description="Choose the right plan for your writing workflow. Free, Starter, Pro, and Unlimited plans with transparent pricing. Start free or upgrade for advanced features."
         keywords="scribely pricing, ai novel generator pricing, writing tool pricing, ai writer subscription, novel generator plans"
+        image="https://scribelydesigns.top/brand1090.png"
         jsonLd={[
           {
             '@context': 'https://schema.org',

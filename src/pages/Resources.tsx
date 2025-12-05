@@ -60,6 +60,7 @@ export default function Resources() {
         title="Resources & Tutorials - Scribely"
         description="Guides, tutorials, and release notes for Scribely, a novel ai writing workspace. Learn how to plan, draft, and ship stories faster."
         keywords="novel ai resources, tutorial, release notes"
+        image="https://scribelydesigns.top/brand1090.png"
       />
       <div className="max-w-5xl mx-auto px-4 space-y-16">
         <header className="text-center space-y-4">
@@ -189,21 +190,30 @@ export default function Resources() {
           <div className="grid md:grid-cols-2 gap-4">
             {supportLinks.map((link) => {
               const isExternal = link.to.startsWith('mailto:');
-              const Wrapper = isExternal ? 'a' : Link;
-              const props = isExternal
-                ? { href: link.to }
-                : {
-                    to: link.to
-                  };
+              const className = "rounded-2xl border border-slate-200 bg-white px-5 py-4 text-left hover:border-slate-300 transition";
+              
+              if (isExternal) {
+                return (
+                  <a
+                    key={link.label}
+                    href={link.to}
+                    className={className}
+                  >
+                    <p className="text-sm font-semibold text-slate-900">{link.label}</p>
+                    <p className="text-xs text-slate-500 mt-1">{link.description}</p>
+                  </a>
+                );
+              }
+              
               return (
-                <Wrapper
+                <Link
                   key={link.label}
-                  {...props}
-                  className="rounded-2xl border border-slate-200 bg-white px-5 py-4 text-left hover:border-slate-300 transition"
+                  to={link.to}
+                  className={className}
                 >
                   <p className="text-sm font-semibold text-slate-900">{link.label}</p>
                   <p className="text-xs text-slate-500 mt-1">{link.description}</p>
-                </Wrapper>
+                </Link>
               );
             })}
           </div>

@@ -14,7 +14,7 @@ interface SEOProps {
 }
 
 const SITE_URL = 'https://scribelydesigns.top';
-const DEFAULT_IMAGE = `${SITE_URL}/og-image.png`;
+const DEFAULT_IMAGE = `${SITE_URL}/brand1090.png`;
 
 export function SEO({
   title,
@@ -79,7 +79,7 @@ export function SEO({
     updateOG('og:url', fullUrl);
     updateOG('og:type', type);
     updateOG('og:image', image);
-    updateOG('og:site_name', 'NovelAI');
+    updateOG('og:site_name', 'Scribely');
 
     // Update Twitter Card tags
     const updateTwitter = (name: string, content: string) => {

@@ -61,6 +61,7 @@ export default function Updates() {
         title="Release Notes - Scribely"
         description="Follow along with Scribely feature launches, UX refinements, and infrastructure updates for your novel ai writing workspace."
         keywords="novel ai updates, release notes, changelog"
+        image="https://scribelydesigns.top/brand1090.png"
         jsonLd={jsonLd}
       />
       <div className="max-w-4xl mx-auto px-4 space-y-12">

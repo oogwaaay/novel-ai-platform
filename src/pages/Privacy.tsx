@@ -10,6 +10,7 @@ export default function Privacy() {
         title="Privacy Policy - Scribely"
         description="Privacy Policy for Scribely. Learn how we collect, use, and protect your data."
         keywords="privacy policy, data protection, scribely"
+        image="https://scribelydesigns.top/brand1090.png"
         jsonLd={{
           '@context': 'https://schema.org',
           '@type': 'PrivacyPolicy',

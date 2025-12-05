@@ -258,7 +258,12 @@ export default function Help() {
       <SEO
         title="Help & Templates - Scribely Workspace"
         description="Learn how to use the Scribely workspace, browse story templates, and read answers to common questions."
+        image="https://scribelydesigns.top/brand1090.png"
       />
+      <div className="max-w-6xl mx-auto px-4 pt-16 pb-8">
+        <h1 className="text-4xl font-semibold text-slate-900 mb-4">Help & Templates</h1>
+        <p className="text-slate-600 mb-8">Learn how to use Scribely and browse story templates to get started.</p>
+      </div>
       <WorkspaceView blocks={helpBlocks} className="space-y-16" />
 
       <FlowGuideDrawer

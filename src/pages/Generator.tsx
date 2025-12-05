@@ -2897,10 +2897,12 @@ const [outlineMapData, setOutlineMapData] = useState<OutlineMapPayload | null>(n
         title="AI Novel Generator - Create Complete Novels with AI | Scribely"
         description="Use our free AI novel generator to create complete novels in minutes with Scribely. Generate novels about AI, fantasy, romance, mystery, and more. Best novel ai style writer tool."
         keywords="ai novel generator, novel ai, ai novel writer, novels about ai, free ai novel generator, ai story generator, ai book generator"
+        image="https://scribelydesigns.top/brand1090.png"
       />
       <div className="max-w-7xl mx-auto px-4">
         {/* Main Editor Area - Full Width */}
         <main className="space-y-6">
+          <h1 className="sr-only">AI Novel Generator - Create Complete Novels with AI</h1>
           {/* Empty Project Guide - Show when project is new and empty */}
           {(() => {
             const projectId = searchParams.get('project');

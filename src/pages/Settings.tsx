@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { fetchCurrentUser } from '../api/authApi';
+import { SEO } from '../components/SEO';
 
 export default function Settings() {
   const { user, setUser, token } = useAuthStore();
@@ -74,6 +75,12 @@ export default function Settings() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
+      <SEO
+        title="Account Settings - Scribely"
+        description="Manage your account settings, profile information, and preferences on Scribely."
+        keywords="account settings, profile, scribely"
+        image="https://scribelydesigns.top/brand1090.png"
+      />
       <h1 className="text-3xl font-bold text-slate-900 mb-8">Account Settings</h1>
 
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">

@@ -263,6 +263,7 @@ export default function Home() {
         title="Scribely - AI Novel Generator | Create Stories with AI"
         description="Generate complete novels with AI in minutes. Free AI novel generator for writers. Create novels about AI, fantasy, romance, mystery, and more."
         keywords="scribely, ai novel generator, ai novel writer, novels about ai, ai story generator, ai book generator"
+        image="https://scribelydesigns.top/brand1090.png"
         jsonLd={{
           '@context': 'https://schema.org',
           '@type': 'WebApplication',

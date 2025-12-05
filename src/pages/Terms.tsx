@@ -10,6 +10,7 @@ export default function Terms() {
         title="Terms of Service - Scribely"
         description="Terms of Service for Scribely. Read the rules and conditions for using our writing tools."
         keywords="terms of service, terms and conditions, scribely"
+        image="https://scribelydesigns.top/brand1090.png"
         jsonLd={{
           '@context': 'https://schema.org',
           '@type': 'TermsOfService',

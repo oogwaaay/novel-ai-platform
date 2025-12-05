@@ -70,6 +70,7 @@ export default function Tutorial() {
         title={`${tutorial.title} - Scribely Tutorial`}
         description={tutorial.description}
         keywords={`novel ai, tutorial, ${tutorial.title.toLowerCase()}`}
+        image="https://scribelydesigns.top/brand1090.png"
       />
       <article className="max-w-4xl mx-auto px-4 py-16">
         {/* Header */}

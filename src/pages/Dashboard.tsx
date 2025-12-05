@@ -684,6 +684,7 @@ export default function Dashboard() {
         title="Dashboard - Your Projects | Scribely"
         description="Manage your AI-generated novels and projects with Scribely. View, edit, and organize all your writing projects in one place."
         keywords="novel ai dashboard, writing projects, ai novel management, project dashboard"
+        image="https://scribelydesigns.top/brand1090.png"
         jsonLd={{
           '@context': 'https://schema.org',
           '@type': 'WebPage',
