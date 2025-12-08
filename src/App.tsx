@@ -18,6 +18,7 @@ import { useAuthStore } from './store/authStore';
 import { migrateLegacyLocalStorage } from './utils/localMigration';
 import NotificationSystem from './components/NotificationSystem';
 import ToastContainer from './components/ToastContainer';
+import AIPromptGenerator from './pages/AIPromptGenerator';
 
 // OAuth callback handler component
 function OAuthCallback() {
@@ -92,6 +93,7 @@ function App() {
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/terms" element={<Terms />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/ai-prompt-generator" element={<AIPromptGenerator />} />
           <Route path="/auth/callback" element={<OAuthCallback />} />
         </Routes>
       </main>
