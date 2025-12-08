@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useAuthStore } from '../store/authStore';
 import UserMenu from './UserMenu';
 import LoginModal from './LoginModal';
+import ThemeToggle from './ThemeToggle';
 
 const navLinks = [
   { to: '/generator', label: 'Generator' },
@@ -52,6 +53,9 @@ export default function Header() {
             </div>
           </div>
           <div className="flex items-center gap-3">
+            {/* Theme Toggle */}
+            <ThemeToggle />
+            
             {isAuthenticated ? (
               <UserMenu />
             ) : (

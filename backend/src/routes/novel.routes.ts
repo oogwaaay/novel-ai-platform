@@ -9,17 +9,25 @@ import { aiGenerationRateLimit } from '../middleware/rateLimit';
 dotenv.config();
 
 const router = Router();
-const apiKey = process.env.DEEPSEEK_API_KEY || process.env.OPENAI_API_KEY;
+// Get API keys from environment variables
+const deepseekApiKey = process.env.DEEPSEEK_API_KEY;
+const openaiApiKey = process.env.OPENAI_API_KEY;
+const apiKey = deepseekApiKey || openaiApiKey;
 
-if (!apiKey || apiKey.length < 10) {
+// Validate API key
+const isValidApiKey = apiKey && apiKey.length > 10;
+
+if (!isValidApiKey) {
   console.error('⚠️  警告：API Key 未找到或格式不正确！');
-  console.error('请在 backend/.env 文件中设置 DEEPSEEK_API_KEY');
-  console.error('当前 API Key:', apiKey ? `${apiKey.substring(0, 5)}...` : '未设置');
+  console.error('请在 backend/.env 文件中设置有效的 DEEPSEEK_API_KEY 或 OPENAI_API_KEY');
+  console.error('当前 API Key 状态:', deepseekApiKey ? 'DeepSeek已配置' : openaiApiKey ? 'OpenAI已配置' : '未配置');
+  console.error('配置示例可参考 .env.example 文件');
 }
 
+// Create OpenAI client with proper API key handling
 const openai = new OpenAI({
   apiKey: apiKey || 'dummy-key',
-  baseURL: process.env.DEEPSEEK_API_KEY ? 'https://api.deepseek.com/v1' : undefined
+  baseURL: deepseekApiKey ? 'https://api.deepseek.com/v1' : undefined
 });
 
 const splitIntoChapters = (text: string) => {
@@ -170,8 +178,51 @@ router.post('/generate', authMiddleware, async (req, res) => {
       contextWindowWords
     } = req.body;
 
-    if (!idea || idea.length < 30) {
-      return res.status(400).json({ error: 'Idea must be at least 30 words' });
+    // 验证idea
+    if (!idea || idea.trim().length < 30) {
+      return res.status(400).json({ error: 'Idea must be at least 30 characters and not just whitespace' });
+    }
+    
+    // 验证length
+    const parsedLength = parseInt(length, 10);
+    if (isNaN(parsedLength) || parsedLength <= 0 || parsedLength > 1000) {
+      return res.status(400).json({ error: 'Length must be a positive integer between 1 and 1000' });
+    }
+    
+    // 验证genre
+    const validGenres = ['general-fiction', 'literary-fiction', 'historical-fiction', 'mystery', 'thriller', 'horror', 'romance', 'fantasy', 'science-fiction', 'dystopian', 'adventure', 'young-adult', 'comedy', 'ai-themed', 'fan-fiction'];
+    if (genre && !validGenres.includes(genre)) {
+      return res.status(400).json({ error: `Invalid genre. Valid options are: ${validGenres.join(', ')}` });
+    }
+    
+    // 验证type
+    const validTypes = ['full', 'outline'];
+    if (type && !validTypes.includes(type)) {
+      return res.status(400).json({ error: `Invalid type. Valid options are: ${validTypes.join(', ')}` });
+    }
+    
+    // 验证contextStrategy
+    const validContextStrategies = ['precision', 'balanced', 'extended'];
+    if (contextStrategy && !validContextStrategies.includes(contextStrategy)) {
+      return res.status(400).json({ error: `Invalid contextStrategy. Valid options are: ${validContextStrategies.join(', ')}` });
+    }
+    
+    // 验证contextWindowWords
+    if (contextWindowWords !== undefined) {
+      const parsedWindow = parseInt(contextWindowWords, 10);
+      if (isNaN(parsedWindow) || parsedWindow <= 0 || parsedWindow > 64000) {
+        return res.status(400).json({ error: 'contextWindowWords must be a positive integer between 1 and 64000' });
+      }
+    }
+    
+    // 验证characters格式
+    if (characters && !Array.isArray(characters)) {
+      return res.status(400).json({ error: 'Characters must be an array' });
+    }
+    
+    // 验证knowledge格式
+    if (knowledge && !Array.isArray(knowledge)) {
+      return res.status(400).json({ error: 'Knowledge must be an array' });
     }
 
     const requestedContextWindow = Math.min(
@@ -454,8 +505,10 @@ const selectSmartContext = (
   characters?: Array<{ name: string; description: string }>,
   maxWords: number = 2000
 ): SmartContextResult => {
+  // Early exit for empty or short context
   if (!fullContext || fullContext.trim().length < 100) {
-    const wordCount = fullContext.split(/\s+/).length;
+    // Fast word count using regex match instead of split
+    const wordCount = (fullContext.match(/\S+/g) || []).length;
     return {
       selectedText: fullContext,
       metadata: {
@@ -468,11 +521,13 @@ const selectSmartContext = (
     };
   }
 
-  // Split into paragraphs (optimized: single pass)
+  // Split into paragraphs (single pass, optimized regex)
   const paragraphs = fullContext.split(/\n{2,}/).filter(p => p.trim().length > 0);
-  const totalWords = fullContext.split(/\s+/).length;
   
-  // If content is short enough, return all (early exit)
+  // Fast total word count using regex match instead of split
+  const totalWords = (fullContext.match(/\S+/g) || []).length;
+  
+  // Early exit if content is short enough
   if (totalWords <= maxWords) {
     return {
       selectedText: fullContext,
@@ -486,32 +541,35 @@ const selectSmartContext = (
     };
   }
 
-  // Extract character names for relevance scoring (optimized: pre-compute patterns)
-  const characterNames = new Set<string>();
+  // Extract character names for relevance scoring (optimized)
+  const characterNamesSet = new Set<string>();
   const characterPatterns: RegExp[] = [];
+  
   if (characters && characters.length > 0) {
-    characters.forEach(c => {
+    for (const c of characters) {
       if (c.name) {
+        // Add full name
         const lowerName = c.name.toLowerCase();
-        characterNames.add(lowerName);
-        // Pre-compile regex pattern for this character name (escape special chars)
+        characterNamesSet.add(lowerName);
         characterPatterns.push(new RegExp(`\\b${lowerName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'gi'));
         
-        // Also add first name if it's a full name
+        // Add first name if it's a full name and longer than 2 characters
         const firstName = c.name.split(/\s+/)[0];
         if (firstName && firstName.length > 2) {
           const lowerFirstName = firstName.toLowerCase();
-          characterNames.add(lowerFirstName);
-          characterPatterns.push(new RegExp(`\\b${lowerFirstName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'gi'));
+          if (!characterNamesSet.has(lowerFirstName)) {
+            characterNamesSet.add(lowerFirstName);
+            characterPatterns.push(new RegExp(`\\b${lowerFirstName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'gi'));
+          }
         }
       }
-    });
+    }
   }
   
-  // Pre-compile action verb patterns (optimized: single regex instead of array filter)
+  // Pre-compile action verb patterns
   const actionVerbsPattern = /\b(ran|jumped|fought|attacked|moved|rushed|charged|struck|hit|fled|escaped|battled|defended|dodged)\b/gi;
 
-  // Score each paragraph for relevance (optimized: cache computations, reduce string operations)
+  // Score each paragraph for relevance (optimized)
   interface ParagraphScore {
     text: string;
     index: number;
@@ -519,18 +577,17 @@ const selectSmartContext = (
     wordCount: number;
   }
 
-  // Pre-compute paragraph data to avoid repeated operations
+  // Pre-compute paragraph data (optimized: avoid unnecessary words array)
   const paragraphData = paragraphs.map((para, index) => {
-    const words = para.split(/\s+/);
-    const wordCount = words.length;
+    // Fast word count using regex match instead of split
+    const wordCount = (para.match(/\S+/g) || []).length;
     const lowerPara = para.toLowerCase(); // Cache lowercase version
     
     return {
       text: para,
       lowerText: lowerPara,
       index,
-      wordCount,
-      words
+      wordCount
     };
   });
 
@@ -541,24 +598,31 @@ const selectSmartContext = (
     const recencyWeight = Math.exp(-(paragraphs.length - data.index - 1) / 10);
     score += recencyWeight * 3;
     
-    // 2. Character mentions: paragraphs mentioning characters are more relevant (optimized: use pre-compiled patterns)
+    // 2. Character mentions: paragraphs mentioning characters are more relevant
     let characterMentions = 0;
     if (characterPatterns.length > 0) {
-      // Use pre-compiled regex patterns instead of creating new ones
-      characterPatterns.forEach(pattern => {
-        const matches = data.lowerText.match(pattern);
-        if (matches) {
-          characterMentions += matches.length;
+      // Early exit if we find at least one match
+      for (const pattern of characterPatterns) {
+        if (pattern.test(data.lowerText)) {
+          characterMentions++;
+          break; // Early exit after first match
         }
-      });
+      }
     }
     score += characterMentions * 2;
     
-    // 3. Dialogue markers: dialogue is often important for continuity (optimized: single regex)
-    const dialogueMarkers = (data.lowerText.match(/["']/g) || []).length;
+    // 3. Dialogue markers: count quotes for dialogue detection
+    let dialogueMarkers = 0;
+    let quoteCount = 0;
+    for (const char of data.text) {
+      if (char === '"' || char === "'") {
+        quoteCount++;
+      }
+    }
+    dialogueMarkers = quoteCount;
     score += Math.min(dialogueMarkers / 5, 1) * 1;
     
-    // 4. Action verbs: action scenes are often important (optimized: single regex match)
+    // 4. Action verbs: check for action scenes
     const actionMatches = data.lowerText.match(actionVerbsPattern);
     const actionCount = actionMatches ? actionMatches.length : 0;
     score += actionCount * 0.5;
@@ -579,95 +643,94 @@ const selectSmartContext = (
   // Sort by score (highest first)
   scoredParagraphs.sort((a, b) => b.score - a.score);
 
-  // Select paragraphs until we reach maxWords (optimized: early exit when possible)
-  const selectedParagraphs: string[] = [];
-  let selectedWordCount = 0;
+  // Select paragraphs until we reach maxWords (optimized)
   const selectedIndices = new Set<number>();
+  let selectedWordCount = 0;
   const lastIndex = paragraphs.length - 1;
 
   // Always include the last paragraph (most recent) - add it first
   if (lastIndex >= 0) {
     const lastPara = scoredParagraphs.find(p => p.index === lastIndex);
     if (lastPara && lastPara.wordCount <= maxWords) {
-      selectedParagraphs.push(lastPara.text);
-      selectedWordCount += lastPara.wordCount;
       selectedIndices.add(lastIndex);
+      selectedWordCount += lastPara.wordCount;
     }
   }
 
-  // Then add other high-scoring paragraphs (optimized: skip already selected, early exit)
+  // Then add other high-scoring paragraphs (optimized: early exit, skip duplicates)
   for (const para of scoredParagraphs) {
-    if (selectedIndices.has(para.index)) continue; // Skip if already selected
+    if (selectedIndices.has(para.index)) continue;
     
-    // Early exit if we've reached the target
-    if (selectedWordCount >= maxWords * 0.95) break; // Allow 5% buffer
+    // Early exit if we're within 5% of the target
+    if (selectedWordCount >= maxWords * 0.95) break;
     
     if (selectedWordCount + para.wordCount <= maxWords) {
-      selectedParagraphs.push(para.text);
-      selectedWordCount += para.wordCount;
       selectedIndices.add(para.index);
+      selectedWordCount += para.wordCount;
     } else {
       // If adding this paragraph would exceed maxWords, check if we can fit a portion
       const remainingWords = maxWords - selectedWordCount;
-      if (remainingWords > 50) { // Only if there's meaningful space left
-        // Take first portion of paragraph (optimized: use cached words if available)
-        const words = para.text.split(/\s+/);
-        const partialText = words.slice(0, remainingWords).join(' ');
-        selectedParagraphs.push(partialText + '...');
-        selectedWordCount += remainingWords;
+      if (remainingWords > 50) {
         selectedIndices.add(para.index);
+        selectedWordCount += remainingWords;
       }
-      break; // Stop once we've reached maxWords
+      break;
     }
   }
 
   // Sort selected paragraphs by original index to maintain narrative flow
-  const sortedSelected = Array.from(selectedIndices)
-    .sort((a, b) => a - b)
-    .map(idx => paragraphs[idx]);
+  const sortedIndices = Array.from(selectedIndices).sort((a, b) => a - b);
+  const sortedSelected = sortedIndices.map(idx => paragraphs[idx]);
 
   const strategy = selectedIndices.size === paragraphs.length ? 'recent' :
                    selectedIndices.has(paragraphs.length - 1) && selectedIndices.size > 1 ? 'mixed' : 'relevant';
 
-  // Compress long paragraphs if needed (preserve key information) - optimized version
+  // Compress long paragraphs if needed (optimized algorithm)
   const compressedParagraphs = sortedSelected.map(para => {
-    const words = para.split(/\s+/);
-    if (words.length > 200) {
+    // Fast word count using regex match instead of split
+    const wordCount = (para.match(/\S+/g) || []).length;
+    
+    if (wordCount > 200) {
       // For very long paragraphs, compress by keeping:
       // 1. First 50 words (introduction)
       // 2. Last 50 words (conclusion)
       // 3. Sentences with character names or dialogue
+      
+      // Fast word split for first and last parts
+      const words = para.split(/\s+/);
       const firstPart = words.slice(0, 50).join(' ');
       const lastPart = words.slice(-50).join(' ');
       
-      // Extract sentences with character mentions or dialogue (optimized: use pre-compiled patterns)
+      // Extract sentences with character mentions or dialogue (optimized)
       const sentences = para.split(/[.!?]+/).filter(s => s.trim().length > 0);
       const importantSentences: string[] = [];
-      const dialoguePattern = /["']/;
       
       // Limit sentence processing for performance
-      const maxSentencesToCheck = Math.min(sentences.length, 20);
-      for (let i = 0; i < maxSentencesToCheck; i++) {
+      const maxSentencesToCheck = Math.min(sentences.length, 15); // Reduced from 20 to 15
+      
+      for (let i = 0; i < maxSentencesToCheck && importantSentences.length < 3; i++) {
         const sentence = sentences[i];
-        const lowerSentence = sentence.toLowerCase();
+        const sentenceLower = sentence.toLowerCase();
         
-        // Check for character mentions (optimized: use pre-compiled patterns)
-        let hasCharacter = false;
-        if (characterPatterns.length > 0) {
+        // Check for character mentions or dialogue
+        let hasImportantContent = false;
+        
+        // Check for dialogue (fast: check for quotes)
+        if (sentence.includes('"') || sentence.includes("'")) {
+          hasImportantContent = true;
+        } 
+        // Check for character mentions if needed
+        else if (characterPatterns.length > 0) {
           for (const pattern of characterPatterns) {
-            if (pattern.test(lowerSentence)) {
-              hasCharacter = true;
+            if (pattern.test(sentenceLower)) {
+              hasImportantContent = true;
               break; // Early exit once found
             }
           }
         }
         
-        // Check for dialogue
-        const hasDialogue = dialoguePattern.test(sentence);
-        
-        if (hasCharacter || hasDialogue) {
+        if (hasImportantContent) {
           importantSentences.push(sentence.trim());
-          if (importantSentences.length >= 3) break; // Limit to 3 important sentences
         }
       }
       
@@ -707,8 +770,43 @@ router.post('/continue', authMiddleware, aiGenerationRateLimit, async (req: Auth
       contextWindowWords
     } = req.body;
     
+    // 验证context
     if (!context || context.trim().length < 50) {
-      return res.status(400).json({ error: 'Context is required and must be at least 50 characters' });
+      return res.status(400).json({ error: 'Context is required and must be at least 50 characters and not just whitespace' });
+    }
+    
+    // 验证contextStrategy
+    const validContextStrategies = ['precision', 'balanced', 'extended'];
+    if (contextStrategy && !validContextStrategies.includes(contextStrategy)) {
+      return res.status(400).json({ error: `Invalid contextStrategy. Valid options are: ${validContextStrategies.join(', ')}` });
+    }
+    
+    // 验证contextWindowWords
+    if (contextWindowWords !== undefined) {
+      const parsedWindow = parseInt(contextWindowWords, 10);
+      if (isNaN(parsedWindow) || parsedWindow <= 0 || parsedWindow > 64000) {
+        return res.status(400).json({ error: 'contextWindowWords must be a positive integer between 1 and 64000' });
+      }
+    }
+    
+    // 验证prompt（如果提供）
+    if (prompt && typeof prompt !== 'string') {
+      return res.status(400).json({ error: 'Prompt must be a string' });
+    }
+    
+    // 验证characters格式
+    if (characters && !Array.isArray(characters)) {
+      return res.status(400).json({ error: 'Characters must be an array' });
+    }
+    
+    // 验证knowledge格式
+    if (knowledge && !Array.isArray(knowledge)) {
+      return res.status(400).json({ error: 'Knowledge must be an array' });
+    }
+    
+    // 验证language（如果提供）
+    if (language && typeof language !== 'string') {
+      return res.status(400).json({ error: 'Language must be a string' });
     }
 
     const languageInstruction = buildLanguageInstruction(context, language);
@@ -792,9 +890,9 @@ router.post('/continue', authMiddleware, aiGenerationRateLimit, async (req: Auth
 
     const systemPrompt = `You are a professional fiction writer. Continue the story naturally from the provided context, maintaining consistency in tone, style, and character behavior.${characterContext ? ' Pay special attention to character consistency.' : ''}${styleInstruction}${knowledgeContext} ${languageInstruction}`;
 
-    if (!apiKey || apiKey.length < 10) {
-      console.error('[Continue] API Key not configured');
-      return res.status(500).json({ error: 'API Key not configured. Please set DEEPSEEK_API_KEY in backend/.env' });
+    if (!isValidApiKey) {
+      console.error('[Continue] API Key not configured or invalid');
+      return res.status(500).json({ error: 'AI服务配置错误。请确保已在backend/.env文件中设置有效的DEEPSEEK_API_KEY或OPENAI_API_KEY，可参考.env.example文件。' });
     }
 
     console.log('[Continue] Calling LLM with context length:', recentContext.length);
@@ -879,8 +977,8 @@ Return a JSON object with:
   "characters": { "summary": "literary summary here", "detail": "${charactersDetail}" }
 }`;
 
-    if (!apiKey || apiKey.length < 10) {
-      console.log('[Analysis] API Key not configured, using fallback');
+    if (!isValidApiKey) {
+      console.log('[Analysis] API Key not configured, using fallback analysis');
       // Fallback to local analysis if API key not configured
       return res.json({
         pacing: { summary: pacing?.summary || 'Pacing analysis', detail: pacingDetail },
@@ -996,8 +1094,9 @@ Return a JSON array of {"character": "...", "goal": "...", "obstacle": "...", "e
     const userPrompt = actionPrompts[action] || actionPrompts.rewrite;
     const systemPrompt = `You are a professional fiction writing assistant. ${characterContext ? 'Pay attention to character consistency.' : ''}${styleInstruction}${knowledgeContext} ${languageInstruction}. Return only valid JSON, no markdown formatting.`;
 
-    if (!apiKey || apiKey.length < 10) {
-      return res.status(500).json({ error: 'API Key not configured' });
+    if (!isValidApiKey) {
+      console.error('[Assist] API Key not configured or invalid');
+      return res.status(500).json({ error: 'AI服务配置错误。请确保已在backend/.env文件中设置有效的DEEPSEEK_API_KEY或OPENAI_API_KEY，可参考.env.example文件。' });
     }
 
     const completion = await openai.chat.completions.create({
@@ -1232,9 +1331,9 @@ router.post('/knowledge/extract', authMiddleware, async (req: AuthRequest, res) 
       return res.status(400).json({ error: 'Text must be at least 100 characters' });
     }
 
-    if (!apiKey || apiKey.length < 10) {
-      console.error('[Extract Knowledge] API Key not configured');
-      return res.status(500).json({ error: 'API Key not configured' });
+    if (!isValidApiKey) {
+      console.error('[Extract Knowledge] API Key not configured or invalid');
+      return res.status(500).json({ error: 'AI服务配置错误。请确保已在backend/.env文件中设置有效的DEEPSEEK_API_KEY或OPENAI_API_KEY，可参考.env.example文件。' });
     }
 
     const prompt = `Analyze the following story text and extract knowledge entries that would be useful for maintaining consistency in future writing. Extract:

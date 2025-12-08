@@ -32,7 +32,7 @@ import {
 import { buildUserHandle, extractMentions, normalizeHandle } from './utils/handle';
 import { apiRateLimit, authRateLimit, aiGenerationRateLimit } from './middleware/rateLimit';
 import { auditLog } from './middleware/auditLog';
-import { errorHandler, notFoundHandler } from './middleware/errorHandler';
+import { errorHandler, notFoundHandler, ApiError, asyncHandler, validationErrorHandler } from './middleware/errorHandler';
 
 const app = express();
 

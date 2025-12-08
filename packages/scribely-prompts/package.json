@@ -1,0 +1,17 @@
+{
+  "name": "@keeey/scribely-prompts",
+  "version": "1.0.0",
+  "description": "Creative writing prompt generator CLI for Scribely",
+  "bin": {
+    "scribely": "index.js"
+  },
+  "homepage": "https://scribelydesigns.top/",
+  "keywords": [
+    "ai writing",
+    "novel generator",
+    "prompts",
+    "creative writing"
+  ],
+  "license": "MIT",
+  "type": "commonjs"
+}
