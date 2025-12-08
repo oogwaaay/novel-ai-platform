@@ -28,6 +28,67 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Dark mode styles */
+[data-theme="dark"] body {
+  background-image: 
+    linear-gradient(rgba(15, 23, 42, 0.7), rgba(15, 23, 42, 0.7)),
+    url('/background.png');
+  color: var(--text-secondary);
+}
+
+/* Ensure text color is applied to all elements */
+[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+/* Ensure form elements also respect dark mode */
+[data-theme="dark"] input,
+[data-theme="dark"] textarea,
+[data-theme="dark"] select {
+  background-color: var(--bg-card);
+  color: var(--text-primary);
+  border-color: var(--border-card);
+}
+
+/* Ensure links respect dark mode */
+[data-theme="dark"] a {
+  color: var(--text-primary);
+}
+
+/* Ensure buttons respect dark mode */
+[data-theme="dark"] button {
+  color: var(--text-primary);
+}
+
+/* Ensure borders respect dark mode */
+[data-theme="dark"] .border-slate-200 {
+  border-color: var(--border-card);
+}
+
+/* Ensure backgrounds respect dark mode */
+[data-theme="dark"] .bg-white {
+  background-color: var(--bg-card);
+}
+
+/* Ensure text colors respect dark mode */
+[data-theme="dark"] .text-slate-600 {
+  color: var(--text-secondary);
+}
+
+[data-theme="dark"] .text-slate-900 {
+  color: var(--text-primary);
+}
+
+/* Ensure hover effects respect dark mode */
+[data-theme="dark"] .hover\:text-slate-900:hover {
+  color: var(--text-primary);
+}
+
+/* Ensure focus effects respect dark mode */
+[data-theme="dark"] :focus {
+  outline-color: var(--accent);
+}
+
 .story-editor .ql-container {
   min-height: 520px;
   border-radius: 1rem;
