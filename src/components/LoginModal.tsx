@@ -67,14 +67,14 @@ export default function LoginModal({ open, onClose, onSuccess }: LoginModalProps
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center px-4">
-      <div className="w-full max-w-md rounded-3xl bg-white shadow-2xl">
-        <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
-          <h2 className="text-xl font-semibold text-slate-900">
+      <div className="w-full max-w-md rounded-3xl bg-white dark:bg-slate-800 shadow-2xl" data-theme={document.documentElement.getAttribute('data-theme') || 'light'}>
+        <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-700 px-6 py-4">
+          <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-200">
             {mode === 'login' ? 'Log in' : 'Create account'}
           </h2>
           <button
             onClick={onClose}
-            className="rounded-full border border-slate-200 p-2 text-slate-500 hover:text-slate-900 hover:bg-slate-50"
+            className="rounded-full border border-slate-200 dark:border-slate-600 p-2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700"
             aria-label="Close"
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
@@ -85,26 +85,26 @@ export default function LoginModal({ open, onClose, onSuccess }: LoginModalProps
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           {error && (
-            <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600">
+            <div className="rounded-2xl border border-rose-200 dark:border-rose-800 bg-rose-50 dark:bg-rose-900/20 px-4 py-3 text-sm text-rose-600 dark:text-rose-400">
               {error}
             </div>
           )}
 
           {mode === 'register' && (
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">Name</label>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Name</label>
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-200"
+                className="w-full rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 px-4 py-2.5 text-sm text-slate-900 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-200 dark:focus:ring-slate-500"
                 placeholder="Your name (optional)"
               />
             </div>
           )}
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">Email</label>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Email</label>
             <input
               type="email"
               value={email}
@@ -116,7 +116,7 @@ export default function LoginModal({ open, onClose, onSuccess }: LoginModalProps
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">Password</label>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Password</label>
             <input
               type="password"
               value={password}
@@ -126,7 +126,7 @@ export default function LoginModal({ open, onClose, onSuccess }: LoginModalProps
               placeholder="••••••••"
             />
             {mode === 'register' && (
-              <p className="mt-1 text-xs text-slate-500">
+              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
                 At least 8 characters, including uppercase, lowercase, and a number.
               </p>
             )}
@@ -135,17 +135,17 @@ export default function LoginModal({ open, onClose, onSuccess }: LoginModalProps
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-slate-800 disabled:bg-slate-300 disabled:cursor-not-allowed transition"
+            className="w-full rounded-xl bg-slate-900 dark:bg-slate-700 px-4 py-2.5 text-sm font-medium text-white dark:text-slate-200 hover:bg-slate-800 dark:hover:bg-slate-600 disabled:bg-slate-300 dark:disabled:bg-slate-500 disabled:cursor-not-allowed transition"
           >
             {loading ? 'Please wait...' : mode === 'login' ? 'Log in' : 'Create account'}
           </button>
 
           <div className="relative mt-4">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-slate-200"></div>
+              <div className="w-full border-t border-slate-200 dark:border-slate-700"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-slate-500">Or continue with</span>
+              <span className="px-2 bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400">Or continue with</span>
             </div>
           </div>
 
@@ -163,7 +163,7 @@ export default function LoginModal({ open, onClose, onSuccess }: LoginModalProps
                 }
                 window.location.href = `${apiUrl}/auth/google`;
               }}
-              className="flex items-center justify-center px-4 py-2.5 border border-slate-300 rounded-xl text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 transition"
+              className="flex items-center justify-center px-4 py-2.5 border border-slate-300 dark:border-slate-600 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600 transition"
             >
               <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
                 <path
@@ -198,7 +198,7 @@ export default function LoginModal({ open, onClose, onSuccess }: LoginModalProps
                 }
                 window.location.href = `${apiUrl}/auth/github`;
               }}
-              className="flex items-center justify-center px-4 py-2.5 border border-slate-300 rounded-xl text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 transition"
+              className="flex items-center justify-center px-4 py-2.5 border border-slate-300 dark:border-slate-600 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600 transition"
             >
               <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
                 <path
@@ -220,7 +220,7 @@ export default function LoginModal({ open, onClose, onSuccess }: LoginModalProps
                     setShowPasswordReset(true);
                     setError(null);
                   }}
-                  className="text-sm text-slate-600 hover:text-slate-900"
+                  className="text-sm text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-200"
                 >
                   Forgot password?
                 </button>

@@ -23,11 +23,11 @@ const ThemeToggle = () => {
     const root = document.documentElement;
     if (currentTheme === 'dark') {
       root.style.setProperty('--bg-page', '#0f172a');
-      root.style.setProperty('--bg-card', 'rgba(30, 41, 59, 0.85)');
-      root.style.setProperty('--border-card', 'rgba(51, 65, 85, 0.6)');
+      root.style.setProperty('--bg-card', 'rgba(30, 41, 59, 0.95)');
+      root.style.setProperty('--border-card', 'rgba(51, 65, 85, 0.8)');
       root.style.setProperty('--text-primary', '#f1f5f9');
       root.style.setProperty('--text-secondary', '#cbd5e1');
-      root.style.setProperty('--accent', '#f1f5f9');
+      root.style.setProperty('--accent', '#3b82f6');
       root.style.setProperty('--shadow-soft', '0 24px 60px rgba(0, 0, 0, 0.3)');
     } else {
       root.style.setProperty('--bg-page', '#f5f7fb');

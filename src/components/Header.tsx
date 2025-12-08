@@ -35,7 +35,7 @@ export default function Header() {
                 Scribely – novel ai novel generator · AI-powered writing workspace
               </span>
             </Link>
-            <div className="hidden md:flex items-center gap-6 text-sm font-medium text-slate-600 dark:text-slate-300">
+            <div className="hidden md:flex items-center gap-6 text-sm font-medium text-slate-600 dark:text-slate-200">
               {navLinks.map((link) => {
                 const isActive = location.pathname === link.to;
                 return (
