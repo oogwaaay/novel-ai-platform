@@ -150,34 +150,30 @@ function renderPricingToggle(block: BlockSchema) {
   };
 
   return (
-    <GlassCard className="flex items-center justify-center gap-4 py-4">
-      <span className={`text-sm font-medium ${billingCycle === 'monthly' ? 'text-slate-900' : 'text-slate-500'}`}>
+    <div className="flex items-center justify-center gap-4 py-4 bg-white dark:bg-slate-800/95 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm">
+      <span className={`text-sm font-medium ${billingCycle === 'monthly' ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-300'}`}>
         Monthly
       </span>
       <button
         onClick={onToggle}
-        className={`relative w-16 h-8 rounded-full transition-colors ${
-          billingCycle === 'yearly' ? 'bg-slate-900' : 'bg-slate-200'
-        }`}
+        className={`relative w-16 h-8 rounded-full transition-colors ${billingCycle === 'yearly' ? 'bg-slate-700 dark:bg-green-600' : 'bg-slate-200 dark:bg-slate-600'}`}
         aria-label="Toggle billing cycle"
       >
         <span
-          className={`absolute top-1 left-1 w-6 h-6 rounded-full bg-white shadow transition-transform ${
-            billingCycle === 'yearly' ? 'translate-x-8' : ''
-          }`}
+          className={`absolute top-0.5 left-0.5 w-7 h-7 rounded-full bg-white dark:bg-white shadow-lg transition-transform ${billingCycle === 'yearly' ? 'translate-x-8' : ''}`}
         />
       </button>
       <div className="flex items-center gap-2">
-        <span className={`text-sm font-medium ${billingCycle === 'yearly' ? 'text-slate-900' : 'text-slate-500'}`}>
+        <span className={`text-sm font-medium ${billingCycle === 'yearly' ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-300'}`}>
           Yearly
         </span>
         {saveLabel && (
-          <span className="text-xs font-semibold text-green-600 bg-green-50 px-3 py-0.5 rounded-full">
+          <span className="text-xs font-semibold text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/30 px-3 py-0.5 rounded-full shadow-md">
             {saveLabel}
           </span>
         )}
       </div>
-    </GlassCard>
+    </div>
   );
 }
 
@@ -206,17 +202,15 @@ function renderPlanGrid(block: BlockSchema) {
         const price = isYearly ? plan.yearlyPrice : plan.monthlyPrice;
         const monthlyEquivalent = Math.round(plan.yearlyPrice / 12);
         return (
-          <GlassCard
+          <div
             key={plan.tier}
-            className={`p-6 transition-all ${plan.popular ? 'ring-2 ring-slate-900 shadow-xl bg-white' : ''}`}
+            className={`p-6 rounded-2xl transition-all ${plan.popular ? 'ring-2 ring-slate-900 dark:ring-slate-700 shadow-xl bg-white dark:bg-slate-800' : 'bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700'}`}
           >
             <div className="flex items-center justify-between mb-4">
-              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">{plan.label}</p>
+              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-white">{plan.label}</p>
               {plan.badge && (
                 <span
-                  className={`text-xs font-semibold px-2 py-1 rounded-full ${
-                    plan.popular ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600'
-                  }`}
+                  className={`text-xs font-semibold px-2 py-1 rounded-full ${plan.popular ? 'bg-slate-900 text-white dark:bg-slate-700 dark:text-white' : 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-white'}`}
                 >
                   {plan.badge}
                 </span>
@@ -224,34 +218,34 @@ function renderPlanGrid(block: BlockSchema) {
             </div>
             <div className="mb-4">
               <div className="flex items-baseline gap-2">
-                <p className="text-4xl font-light text-slate-900">${price}</p>
-                <span className="text-sm text-slate-500">{isYearly ? '/year' : '/month'}</span>
+                <p className="text-4xl font-light text-slate-900 dark:text-white">${price}</p>
+                <span className="text-sm text-slate-500 dark:text-slate-300">{isYearly ? '/year' : '/month'}</span>
               </div>
               {isYearly && (
-                <p className="text-sm mt-1 text-slate-500">
+                <p className="text-sm mt-1 text-slate-500 dark:text-slate-300">
                   ${monthlyEquivalent}/month
-                  <span className="ml-2 text-xs font-semibold text-green-600 bg-green-50 px-2 py-0.5 rounded-full">
+                  <span className="ml-2 text-xs font-semibold text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/30 px-2 py-0.5 rounded-full shadow-md">
                     Save {plan.yearlyDiscount}%
                   </span>
                 </p>
               )}
             </div>
-            <p className="mb-6 text-sm text-slate-600">{plan.description}</p>
-            <ul className="mb-8 space-y-3 text-sm text-slate-700">
+            <p className="mb-6 text-sm text-slate-600 dark:text-white">{plan.description}</p>
+            <ul className="mb-8 space-y-3 text-sm text-slate-700 dark:text-white">
               {plan.features.map((feature) => (
                 <li key={feature} className="flex items-start gap-2">
-                  <span className="mt-1.5 h-1.5 w-1.5 rounded-full flex-shrink-0 bg-slate-900" />
-                  <span className="text-slate-700">{feature}</span>
+                  <span className="mt-1.5 h-1.5 w-1.5 rounded-full flex-shrink-0 bg-slate-900 dark:bg-slate-300" />
+                  <span className="text-slate-700 dark:text-white">{feature}</span>
                 </li>
               ))}
             </ul>
             <PrimaryButton
               onClick={() => onSelectPlan?.(plan.tier)}
-              className={`w-full ${plan.popular ? 'bg-slate-900 text-white hover:bg-slate-800' : ''}`}
+              className={`w-full ${plan.popular ? 'bg-slate-900 text-white hover:bg-slate-800 dark:bg-slate-700 dark:hover:bg-slate-600' : ''}`}
             >
               {plan.ctaLabel}
             </PrimaryButton>
-          </GlassCard>
+          </div>
         );
       })}
     </div>
