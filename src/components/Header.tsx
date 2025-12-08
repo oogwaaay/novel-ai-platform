@@ -20,7 +20,7 @@ export default function Header() {
 
   return (
     <>
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-20">
+      <header className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-20">
         <nav className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-10">
             <Link to="/" className="flex items-center gap-2">
@@ -35,16 +35,14 @@ export default function Header() {
                 Scribely – novel ai novel generator · AI-powered writing workspace
               </span>
             </Link>
-            <div className="hidden md:flex items-center gap-6 text-sm font-medium text-slate-600">
+            <div className="hidden md:flex items-center gap-6 text-sm font-medium text-slate-600 dark:text-slate-300">
               {navLinks.map((link) => {
                 const isActive = location.pathname === link.to;
                 return (
                   <Link
                     key={link.to}
                     to={link.to}
-                    className={`transition hover:text-slate-900 ${
-                      isActive ? 'text-slate-900' : ''
-                    }`}
+                    className={`transition hover:text-slate-900 dark:hover:text-white ${isActive ? 'text-slate-900 dark:text-white' : ''}`}
                   >
                     {link.label}
                   </Link>

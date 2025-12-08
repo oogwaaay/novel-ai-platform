@@ -6,7 +6,7 @@ interface GlassCardProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 const baseClass =
-  'bg-white/80 backdrop-blur-xl border border-slate-200/50 rounded-3xl shadow-[var(--shadow-soft)]';
+  'bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl border border-slate-200/50 dark:border-slate-700/50 rounded-3xl shadow-[var(--shadow-soft)]';
 
 export function GlassCard({ className = '', children, ...props }: GlassCardProps) {
   return (

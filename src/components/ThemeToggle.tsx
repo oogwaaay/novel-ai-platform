@@ -43,7 +43,7 @@ const ThemeToggle = () => {
   // 初始化主题
   useEffect(() => {
     updateTheme(theme);
-  }, []);
+  }, [theme]);
 
   return (
     <button
