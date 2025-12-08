@@ -77,9 +77,9 @@ function App() {
   }, [token]);
 
   return (
-    <div className="min-h-screen text-slate-900 flex flex-col" style={{ background: 'transparent' }}>
+    <div className="min-h-screen flex flex-col">
       <Header />
-      <main className="flex-1" style={{ background: 'transparent' }}>
+      <main className="flex-1">
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/generator" element={<Generator />} />

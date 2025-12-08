@@ -83,8 +83,8 @@ export function rateLimit(options: RateLimitOptions) {
 
 // Pre-configured rate limiters
 export const authRateLimit = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // 5 requests per 15 minutes
+  windowMs: 5 * 60 * 1000, // 5 minutes (缩短时间窗口)
+  max: 20, // 20 requests per 5 minutes (增加最大请求次数)
   message: 'Too many authentication attempts, please try again later'
 });
 
