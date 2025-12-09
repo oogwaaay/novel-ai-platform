@@ -3,6 +3,9 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { SEO } from '../components/SEO';
 import { PrimaryButton } from '../components/ui/PrimaryButton';
 
+// 使用环境变量获取 API 基础 URL
+const API_BASE_URL = import.meta.env.VITE_API_URL || '';
+
 // 定义页面状态类型
 type PageState = 'loading' | 'success' | 'error';
 
@@ -39,22 +42,22 @@ export default function PaymentSuccess() {
     }
 
     // 第二步：调用后端 API 验证支付状态
-    const verifyPayment = async (id: string) => {
-      try {
-        const response = await fetch(`/api/creem/check-status?checkout_id=${id}`);
-        const result = await response.json();
-        
-        // Check if payment was successful
-        if (result.success) {
-          setPageState('success');
-        } else {
-          setPageState('error');
-        }
-      } catch (error) {
-        console.error('Error verifying payment:', error);
-        setPageState('error');
-      }
-    };
+        const verifyPayment = async (id: string) => {
+          try {
+            const response = await fetch(`${API_BASE_URL}/api/creem/check-status?checkout_id=${id}`);
+            const result = await response.json();
+            
+            // Check if payment was successful
+            if (result.success) {
+              setPageState('success');
+            } else {
+              setPageState('error');
+            }
+          } catch (error) {
+            console.error('Error verifying payment:', error);
+            setPageState('error');
+          }
+        };
 
     verifyPayment(checkoutId);
   }, [location.search]);

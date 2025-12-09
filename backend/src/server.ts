@@ -37,9 +37,9 @@ import { errorHandler, notFoundHandler, ApiError, asyncHandler, validationErrorH
 
 const app = express();
 
-// CORS configuration - restrict to specific origin in production
+// CORS configuration - allow specific origins
 const corsOptions = {
-  origin: process.env.CLIENT_ORIGIN || (process.env.NODE_ENV === 'production' ? false : '*'),
+  origin: ['https://scribelydesigns.top', 'http://localhost:3000'], // 允许前端域名和本地开发环境
   credentials: true,
   optionsSuccessStatus: 200
 };

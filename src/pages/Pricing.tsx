@@ -9,8 +9,8 @@ import { updateSubscription } from '../api/authApi';
 import { CREEM_PRODUCT_IDS } from '../config/products';
 import type { SubscriptionTier } from '../types/subscription';
 import LoginModal from '../components/LoginModal';
-// 使用相对路径，让浏览器自动使用当前页面的域名和端口
-const API_BASE_URL = '/api';
+// 使用环境变量获取 API 基础 URL，开发环境为空字符串(走代理)，生产环境为 Railway 域名
+const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
 export default function Pricing() {
   const navigate = useNavigate();
