@@ -68,7 +68,7 @@ export default function Pricing() {
       const productId = CREEM_PRODUCT_IDS[normalizedTier][billingCycle];
       
       // Call Creem API to create checkout session
-      const apiUrl = `${API_BASE_URL}/creem/create-checkout`;
+      const apiUrl = `${API_BASE_URL}/api/creem/create-checkout`;
       
       const response = await fetch(apiUrl, {
         method: 'POST',

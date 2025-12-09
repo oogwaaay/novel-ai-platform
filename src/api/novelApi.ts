@@ -1,7 +1,8 @@
 import axios from 'axios';
 import { useAuthStore } from '../store/authStore';
 
-const API_BASE = import.meta.env.VITE_API_URL || '/api';
+// Always include /api prefix for novel requests
+const API_BASE = `${(import.meta.env.VITE_API_URL as string | undefined) || ''}/api`;
 
 import type { WritingStyle } from '../types/style';
 import type { KnowledgeEntry } from '../types/knowledge';

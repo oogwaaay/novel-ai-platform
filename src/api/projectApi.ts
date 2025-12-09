@@ -2,7 +2,8 @@ import { useAuthStore } from '../store/authStore';
 import type { Project } from '../store/projectStore';
 import type { Chapter } from './novelApi';
 
-const API_BASE_URL = (import.meta.env.VITE_API_URL as string | undefined) || '/api';
+// Always include /api prefix for project requests
+const API_BASE_URL = `${(import.meta.env.VITE_API_URL as string | undefined) || ''}/api`;
 
 export interface CreateProjectData {
   title: string;

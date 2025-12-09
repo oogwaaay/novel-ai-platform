@@ -6,7 +6,8 @@ import {
 } from '../store/subscriptionStore';
 import type { SubscriptionLimits, SubscriptionTier } from '../types/subscription';
 
-const API_BASE_URL = (import.meta.env.VITE_API_URL as string | undefined) || '/api';
+// Always include /api prefix for auth requests
+const API_BASE_URL = `${(import.meta.env.VITE_API_URL as string | undefined) || ''}/api`;
 const AUTH_BASE = `${API_BASE_URL}/auth`;
 
 export interface LoginCredentials {

@@ -4,7 +4,8 @@ import type { WritingStyle } from '../types/style';
 import type { KnowledgeEntry } from '../types/knowledge';
 import type { StyleTemplate } from '../types/templates';
 
-const API_BASE_URL = (import.meta.env.VITE_API_URL as string | undefined) || '/api';
+// Always include /api prefix for context requests
+const API_BASE_URL = `${(import.meta.env.VITE_API_URL as string | undefined) || ''}/api`;
 
 export interface ProjectContext {
   characters: Character[];

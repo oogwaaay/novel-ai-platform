@@ -32,8 +32,8 @@ export default function Settings() {
     setMessage(null);
 
     try {
-      const API_BASE_URL = (import.meta.env.VITE_API_URL as string | undefined) || '/api';
-
+      // Always include /api prefix for user requests
+      const API_BASE_URL = `${(import.meta.env.VITE_API_URL as string | undefined) || ''}/api`;
       const response = await fetch(`${API_BASE_URL}/user/profile`, {
         method: 'PUT',
         headers: {
