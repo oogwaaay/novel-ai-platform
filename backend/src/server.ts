@@ -12,6 +12,7 @@ import { authRoutes } from './routes/auth.routes';
 import { userRoutes } from './routes/user.routes';
 import { projectRoutes } from './routes/project.routes';
 import { contextRoutes } from './routes/context.routes';
+import { creemRoutes } from './routes/creem.routes';
 import {
   addProjectComment,
   listProjectComments,
@@ -62,6 +63,7 @@ app.use('/api/novel', apiRateLimit, novelRoutes);
 app.use('/api/user', apiRateLimit, userRoutes);
 app.use('/api/projects', apiRateLimit, projectRoutes);
 app.use('/api/context', apiRateLimit, contextRoutes);
+app.use('/api/creem', apiRateLimit, creemRoutes);
 
 // Enhanced health check
 app.get('/api/health', (req, res) => {

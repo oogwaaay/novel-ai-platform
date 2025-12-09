@@ -12,24 +12,51 @@ export default function PaymentSuccess() {
   const [pageState, setPageState] = useState<PageState>('loading');
   const [sessionId, setSessionId] = useState<string | null>(null);
 
-  // 第一步：获取 URL 参数
+  // 第一步：获取 URL 参数并验证支付状态
   useEffect(() => {
+    // 提取 checkout_id 参数
     const params = new URLSearchParams(location.search);
-    const id = params.get('session_id');
-    setSessionId(id);
+    const checkoutId = params.get('checkout_id');
+    setSessionId(checkoutId);
 
-    if (!id) {
-      setPageState('error');
-      return;
+    // 如果 URL 里没有 ID，继续显示 Loading 状态，等待一段时间后再检查
+    if (!checkoutId) {
+      // 有时跳转会有延迟，等待 1 秒后再次检查
+      const timer = setTimeout(() => {
+        // 再次检查 URL 参数
+        const newParams = new URLSearchParams(window.location.search);
+        const newCheckoutId = newParams.get('checkout_id');
+        if (newCheckoutId) {
+          setSessionId(newCheckoutId);
+          verifyPayment(newCheckoutId);
+        } else {
+          // 如果还是没有 ID，才显示错误
+          setPageState('error');
+        }
+      }, 1000);
+      
+      return () => clearTimeout(timer);
     }
 
-    // 第二步：模拟加载状态
-    // 模拟后端验证 - 2秒延迟
-    const timer = setTimeout(() => {
-      setPageState('success');
-    }, 2000);
+    // 第二步：调用后端 API 验证支付状态
+    const verifyPayment = async (id: string) => {
+      try {
+        const response = await fetch(`/api/creem/check-status?checkout_id=${id}`);
+        const result = await response.json();
+        
+        // Check if payment was successful
+        if (result.success) {
+          setPageState('success');
+        } else {
+          setPageState('error');
+        }
+      } catch (error) {
+        console.error('Error verifying payment:', error);
+        setPageState('error');
+      }
+    };
 
-    return () => clearTimeout(timer);
+    verifyPayment(checkoutId);
   }, [location.search]);
 
   // 处理按钮点击

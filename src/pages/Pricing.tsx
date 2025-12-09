@@ -6,13 +6,18 @@ import type { BlockSchema } from '../types/block';
 import { CAPABILITY_PROFILES } from '../config/capabilities';
 import { useAuthStore } from '../store/authStore';
 import { updateSubscription } from '../api/authApi';
+import { CREEM_PRODUCT_IDS } from '../config/products';
 import type { SubscriptionTier } from '../types/subscription';
+import LoginModal from '../components/LoginModal';
+// 使用相对路径，让浏览器自动使用当前页面的域名和端口
+const API_BASE_URL = '/api';
 
 export default function Pricing() {
   const navigate = useNavigate();
   const location = useLocation();
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
   const { isAuthenticated } = useAuthStore();
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   // Handle anchor scrolling when navigating from other pages or URL hash
   useEffect(() => {
@@ -32,30 +37,60 @@ export default function Pricing() {
     CAPABILITY_PROFILES.unlimited
   ];
 
-  const handleSelectPlan = async (tier: string) => {
+  const handleSelectPlan = async (tier: string, e?: React.MouseEvent) => {
+    // 阻止默认行为
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
     const normalizedTier = (tier || '').toLowerCase() as SubscriptionTier;
-    if (!['free', 'starter', 'pro', 'unlimited'].includes(normalizedTier)) {
+    
+    // Free plan doesn't require payment
+    if (normalizedTier === 'free') {
+      navigate('/generator');
+      return;
+    }
+    
+    if (!['starter', 'pro', 'unlimited'].includes(normalizedTier)) {
       navigate('/generator');
       return;
     }
 
-    // If not logged in, send user to generator to start onboarding/login,
-    // while keeping the desired plan in the URL for later use.
+    // If not logged in, show login modal
     if (!isAuthenticated) {
-      navigate(`/generator?plan=${normalizedTier}`);
+      setShowLoginModal(true);
       return;
     }
 
     try {
-      // Soft subscription switch without real payment integration.
-      await updateSubscription({
-        tier: normalizedTier,
-        billingCycle,
-        status: 'active'
+      // Get the appropriate Creem product ID for this plan and billing cycle
+      const productId = CREEM_PRODUCT_IDS[normalizedTier][billingCycle];
+      
+      // Call Creem API to create checkout session
+      const apiUrl = `${API_BASE_URL}/creem/create-checkout`;
+      
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          productId,
+          billingCycle
+        })
       });
-      navigate('/generator');
+
+      const result = await response.json();
+      
+      if (result.checkout_url) {
+        // Redirect to Creem payment page
+        window.location.href = result.checkout_url;
+      } else {
+        throw new Error('Failed to create checkout session');
+      }
     } catch (error) {
-      console.error('[Pricing] Failed to update subscription', error);
+      console.error('[Pricing] Failed to create checkout session', error);
       // Fallback: still navigate to generator so the user can continue writing.
       navigate('/generator');
     }
@@ -348,6 +383,16 @@ export default function Pricing() {
       <div className="max-w-6xl mx-auto px-4 space-y-12">
         <WorkspaceView blocks={pricingBlocks} className="space-y-12" />
       </div>
+      
+      {/* Login Modal for subscription */}
+      <LoginModal
+        open={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+        onSuccess={() => {
+          setShowLoginModal(false);
+          // After successful login, user can click again to purchase
+        }}
+      />
     </div>
   );
 }

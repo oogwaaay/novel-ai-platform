@@ -240,7 +240,10 @@ function renderPlanGrid(block: BlockSchema) {
               ))}
             </ul>
             <PrimaryButton
-              onClick={() => onSelectPlan?.(plan.tier)}
+              onClick={(e) => {
+                console.log('按钮点击事件:', e);
+                onSelectPlan?.(plan.tier, e);
+              }}
               className={`w-full ${plan.popular ? 'bg-slate-900 text-white hover:bg-slate-800 dark:bg-slate-700 dark:hover:bg-slate-600' : ''}`}
             >
               {plan.ctaLabel}
