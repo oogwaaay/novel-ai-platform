@@ -63,6 +63,7 @@ router.post(
       };
       
       // Call Creem API to create checkout session
+      console.log('🚀 [DEBUG] Requesting Creem URL:', `${CREEM_API_BASE}/checkouts`);
       const response = await creemApi.post('/checkouts', requestBody);
 
       const { checkout_url, id: checkoutId } = response.data;
@@ -95,6 +96,7 @@ router.get(
 
     try {
       // Call Creem API to get checkout status - 使用查询参数而不是路径参数
+      console.log('🚀 [DEBUG] Requesting Creem URL:', `${CREEM_API_BASE}/checkouts?checkout_id=${checkout_id}`);
       const response = await creemApi.get(`/checkouts?checkout_id=${checkout_id}`);
 
       const checkoutData = response.data;
