@@ -921,6 +921,41 @@ const [outlineMapData, setOutlineMapData] = useState<OutlineMapPayload | null>(n
     );
   }, [canUseCollaboration, user, isCollabConnected, enhanceParticipants]);
 
+  // AI idea expansion functionality
+  const [isExpandingIdea, setIsExpandingIdea] = useState(false);
+  
+  const handleExpandIdea = async () => {
+    if (!idea.trim()) {
+      setError('Please enter a story idea first');
+      return;
+    }
+    
+    if (!canUseAIAssistant) {
+      setError('This feature is only available for Pro and Unlimited users');
+      return;
+    }
+    
+    setIsExpandingIdea(true);
+    setError(null);
+    try {
+      // Call AI to expand the idea
+      const expandedIdea = await generateNovel({
+        genre,
+        idea: idea.trim(),
+        length: 1,
+        type: 'outline'
+      });
+      
+      setIdea(expandedIdea.content || idea);
+      showToast('Idea expanded successfully!', 'success');
+    } catch (error) {
+      console.error('[Generator] Failed to expand idea:', error);
+      setError('Failed to expand idea. Please try again.');
+    } finally {
+      setIsExpandingIdea(false);
+    }
+  };
+
   // Calculate current draft content for knowledge extraction (plain text version, without markdown headers)
   const currentDraftContentForExtraction = useMemo(() => {
     if (chapters.length > 0) {
@@ -1466,6 +1501,16 @@ const [outlineMapData, setOutlineMapData] = useState<OutlineMapPayload | null>(n
       return;
     }
     
+    // 处理从 AIPromptGenerator 跳转过来的 prompt 参数
+    const incomingPrompt = searchParams.get('prompt');
+    if (incomingPrompt) {
+      setIdea(incomingPrompt);
+      setPrefillNotice('Visual prompt loaded. Ready to turn into a story!');
+      prefillAppliedRef.current = true;
+      return;
+    }
+    
+    // 处理 hero 和 flow-guide 入口
     if (entry !== 'hero' && entry !== 'flow-guide') return;
 
     const incomingIdea = searchParams.get('idea');
@@ -2658,8 +2703,8 @@ const [outlineMapData, setOutlineMapData] = useState<OutlineMapPayload | null>(n
 
 
   const handleGenerate = async () => {
-    if (!idea.trim() || idea.length < 30) {
-      setError('Please provide at least 30 words for your novel idea');
+    if (!idea.trim() || idea.length < 10) {
+      setError('Your idea is a bit brief. Try adding more details about the setting, characters, or conflict.');
       return;
     }
 
@@ -2832,8 +2877,8 @@ const [outlineMapData, setOutlineMapData] = useState<OutlineMapPayload | null>(n
   }, [shouldQuickStart, idea]);
 
   const handleGenerateOutline = async () => {
-    if (!idea.trim() || idea.length < 30) {
-      setError('Please provide at least 30 words for your novel idea');
+    if (!idea.trim() || idea.length < 10) {
+      setError('Your idea is a bit brief. Try adding more details about the setting, characters, or conflict.');
       return;
     }
 
@@ -3602,6 +3647,9 @@ const [outlineMapData, setOutlineMapData] = useState<OutlineMapPayload | null>(n
         onShowPlanDrawer={() => setShowPlanDrawer(true)}
         storedPref={storedPref}
         onApplyStoredPreference={applyStoredPreference}
+        canUseAIAssistant={canUseAIAssistant}
+        onExpandIdea={handleExpandIdea}
+        isExpandingIdea={isExpandingIdea}
         characters={characters}
         onCharactersChange={setCharacters}
         writingStyle={writingStyle}

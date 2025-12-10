@@ -179,8 +179,8 @@ router.post('/generate', authMiddleware, async (req, res) => {
     } = req.body;
 
     // 验证idea
-    if (!idea || idea.trim().length < 30) {
-      return res.status(400).json({ error: 'Idea must be at least 30 characters and not just whitespace' });
+    if (!idea || idea.trim().length < 15) {
+      return res.status(400).json({ error: 'Your idea is a bit brief. Try adding more details about the setting, characters, or conflict.' });
     }
     
     // 验证length

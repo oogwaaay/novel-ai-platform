@@ -1,4 +1,4 @@
-import { useState } from 'react';
+
 import type { UserPreferences } from '../utils/userPreferences';
 
 interface BriefPanelProps {
@@ -37,6 +37,9 @@ interface BriefPanelProps {
   onApplyStoredPreference: () => void;
   isCollapsed?: boolean;
   onToggleCollapse?: () => void;
+  canUseAIAssistant?: boolean;
+  onExpandIdea?: () => void;
+  isExpandingIdea?: boolean;
 }
 
 const LANGUAGE_CHOICES = [
@@ -74,7 +77,10 @@ export default function BriefPanel({
   storedPref,
   onApplyStoredPreference,
   isCollapsed = false,
-  onToggleCollapse
+  onToggleCollapse,
+  canUseAIAssistant = false,
+  onExpandIdea,
+  isExpandingIdea = false
 }: BriefPanelProps) {
   return (
     <section className="rounded-3xl border border-slate-200 bg-white shadow-sm">
@@ -147,12 +153,36 @@ export default function BriefPanel({
 
           <div className="space-y-3">
             <label className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Idea</label>
-            <textarea
-              value={idea}
-              onChange={(e) => onIdeaChange(e.target.value)}
-              placeholder="Describe your story idea..."
-              className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-200 min-h-[120px] transition-all resize-none"
-            />
+            <div className="relative">
+              <textarea
+                value={idea}
+                onChange={(e) => onIdeaChange(e.target.value)}
+                placeholder="Describe your story idea..."
+                className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-200 min-h-[120px] transition-all resize-none"
+              />
+              {canUseAIAssistant && onExpandIdea && (
+                <button
+                  onClick={onExpandIdea}
+                  disabled={isExpandingIdea || loading || !idea.trim()}
+                  className="absolute bottom-2 right-2 px-3 py-1.5 text-xs font-semibold rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 disabled:bg-indigo-400 disabled:cursor-not-allowed transition flex items-center gap-1"
+                  title="Expand idea with AI"
+                >
+                  {isExpandingIdea ? (
+                    <>
+                      <div className="h-2 w-2 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                      Expanding...
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                      </svg>
+                      Expand with AI
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
           </div>
 
           <div className="space-y-2">

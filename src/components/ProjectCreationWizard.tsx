@@ -2,6 +2,10 @@ import { useState } from 'react';
 import { GlassCard } from './ui/GlassCard';
 import { PrimaryButton } from './ui/PrimaryButton';
 import { SecondaryButton } from './ui/SecondaryButton';
+import { useSubscription } from '../hooks/useSubscription';
+import { useCapabilities } from '../hooks/useCapabilities';
+import { showToast } from '../utils/toast';
+import { generateNovel } from '../api/novelApi';
 
 const GENRE_OPTIONS = [
   { value: 'general-fiction', label: 'General Fiction' },
@@ -53,6 +57,12 @@ export default function ProjectCreationWizard({
   const [language, setLanguage] = useState('english');
   const [idea, setIdea] = useState('');
   const [isCreating, setIsCreating] = useState(false);
+  const [isExpanding, setIsExpanding] = useState(false);
+  
+  // Subscription and capabilities
+  const subscription = useSubscription();
+  const { hasFeature } = useCapabilities();
+  const canUseAIAssistant = hasFeature('aiAssistant');
 
   if (!isOpen) return null;
 
@@ -67,6 +77,38 @@ export default function ProjectCreationWizard({
   const handleBack = () => {
     if (step > 1) {
       setStep(step - 1);
+    }
+  };
+
+  // Expand idea using AI
+  const handleExpandIdea = async () => {
+    if (!idea.trim()) {
+      showToast('Please enter a story idea first', 'error');
+      return;
+    }
+    
+    if (!canUseAIAssistant) {
+      showToast('This feature is only available for Pro and Unlimited users', 'error');
+      return;
+    }
+    
+    setIsExpanding(true);
+    try {
+      // Call AI to expand the idea
+      const expandedIdea = await generateNovel({
+        genre: 'general-fiction',
+        idea: idea.trim(),
+        length: 1,
+        type: 'outline'
+      });
+      
+      setIdea(expandedIdea.content || idea);
+      showToast('Idea expanded successfully!', 'success');
+    } catch (error) {
+      console.error('[ProjectCreationWizard] Failed to expand idea:', error);
+      showToast('Failed to expand idea. Please try again.', 'error');
+    } finally {
+      setIsExpanding(false);
     }
   };
 
@@ -200,12 +242,23 @@ export default function ProjectCreationWizard({
                 <label className="block text-sm font-medium text-slate-700 mb-2">
                   Story Idea (Optional)
                 </label>
-                <textarea
-                  value={idea}
-                  onChange={(e) => setIdea(e.target.value)}
-                  placeholder="Describe your story idea, characters, or plot..."
-                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900/20 min-h-[120px] resize-none"
-                />
+                <div className="space-y-2">
+                  <textarea
+                    value={idea}
+                    onChange={(e) => setIdea(e.target.value)}
+                    placeholder="Describe your story idea, characters, or plot..."
+                    className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900/20 min-h-[120px] resize-none"
+                  />
+                  {canUseAIAssistant && (
+                    <SecondaryButton 
+                      onClick={handleExpandIdea} 
+                      disabled={isCreating || !idea.trim() || isExpanding}
+                      className="w-full text-sm"
+                    >
+                      {isExpanding ? 'Expanding idea...' : '✨ Expand Idea with AI'}
+                    </SecondaryButton>
+                  )}
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">

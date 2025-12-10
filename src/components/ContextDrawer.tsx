@@ -39,6 +39,10 @@ interface ContextDrawerProps {
   onShowPlanDrawer: () => void;
   storedPref: any;
   onApplyStoredPreference: () => void;
+  // AI idea expansion
+  canUseAIAssistant?: boolean;
+  onExpandIdea?: () => void;
+  isExpandingIdea?: boolean;
   // Character props
   characters: Character[];
   onCharactersChange: (characters: Character[]) => void;
@@ -95,6 +99,9 @@ export default function ContextDrawer({
   onShowPlanDrawer,
   storedPref,
   onApplyStoredPreference,
+  canUseAIAssistant = false,
+  onExpandIdea,
+  isExpandingIdea = false,
   characters,
   onCharactersChange,
   writingStyle,
@@ -153,6 +160,9 @@ export default function ContextDrawer({
             onShowPlanDrawer={onShowPlanDrawer}
             storedPref={storedPref}
             onApplyStoredPreference={onApplyStoredPreference}
+            canUseAIAssistant={canUseAIAssistant}
+            onExpandIdea={onExpandIdea}
+            isExpandingIdea={isExpandingIdea}
             isCollapsed={isBriefCollapsed}
             onToggleCollapse={() => setIsBriefCollapsed(!isBriefCollapsed)}
           />
