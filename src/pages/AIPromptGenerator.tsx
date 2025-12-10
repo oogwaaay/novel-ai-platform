@@ -279,6 +279,29 @@ export default function AIPromptGenerator() {
               </SecondaryButton>
             </div>
             
+            {/* Write Story Button - Visual-to-Story Bridge */}
+            <div className="mt-6">
+              <PrimaryButton
+                onClick={() => {
+                  const encodedPrompt = encodeURIComponent(prompt);
+                  window.location.href = `https://scribelydesigns.top/app/editor?mode=visual_start&prompt=${encodedPrompt}`;
+                }}
+                disabled={!prompt || isGenerating}
+                className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-medium py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-[1.02] hover:shadow-lg relative group"
+              >
+                <span className="flex items-center justify-center gap-2">
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
+                  </svg>
+                  ✨ Write This Story (Scribely AI)
+                </span>
+                {/* Tooltip */}
+                <span className="absolute -top-9 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-xs px-3 py-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap">
+                  Turn this visual idea into a novel chapter instantly.
+                </span>
+              </PrimaryButton>
+            </div>
+            
             {/* How it works */}
             <div className="pt-6 border-t border-slate-200 dark:border-slate-700">
               <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">
