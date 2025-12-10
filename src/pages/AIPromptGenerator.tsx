@@ -3,6 +3,7 @@ import { SEO } from '../components/SEO';
 import { GlassCard } from '../components/ui/GlassCard';
 import { PrimaryButton } from '../components/ui/PrimaryButton';
 import { SecondaryButton } from '../components/ui/SecondaryButton';
+import LiveActivityFeed from '../components/LiveActivityFeed';
 
 export default function AIPromptGenerator() {
   // Example prompt for initial state
@@ -316,42 +317,56 @@ export default function AIPromptGenerator() {
           </div>
         </GlassCard>
         
-        {/* Feature List */}
-        <div className="mt-16 grid md:grid-cols-3 gap-8">
-          <div className="text-center space-y-3">
-            <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800 mx-auto flex items-center justify-center">
-              <span className="text-2xl">🎨</span>
-            </div>
-            <h3 className="text-lg font-medium text-slate-900 dark:text-slate-200">
-              Endless Ideas
-            </h3>
-            <p className="text-slate-600 dark:text-slate-400 text-sm">
-              Generate thousands of unique prompt combinations to overcome creative block.
-            </p>
+        {/* Section B (Middle): Social Proof */}
+        <div className="py-12">
+          <div className="text-center mb-4">
+            <h2 className="text-xl font-bold text-slate-900 dark:text-slate-200">🔥 Live Inspiration Feed</h2>
           </div>
-          
-          <div className="text-center space-y-3">
-            <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800 mx-auto flex items-center justify-center">
-              <span className="text-2xl">🚀</span>
-            </div>
-            <h3 className="text-lg font-medium text-slate-900 dark:text-slate-200">
-              Ready to Use
-            </h3>
-            <p className="text-slate-600 dark:text-slate-400 text-sm">
-              Copy and paste directly into your favorite AI art generator.
-            </p>
-          </div>
-          
-          <div className="text-center space-y-3">
-            <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800 mx-auto flex items-center justify-center">
-              <span className="text-2xl">📱</span>
-            </div>
-            <h3 className="text-lg font-medium text-slate-900 dark:text-slate-200">
-              Mobile Friendly
-            </h3>
-            <p className="text-slate-600 dark:text-slate-400 text-sm">
-              Works on any device, from desktop to mobile.
-            </p>
+          <LiveActivityFeed />
+        </div>
+        
+        {/* Section C (Bottom): SEO Content Block */}
+        <div className="py-12 max-w-3xl mx-auto">
+          <div className="space-y-8">
+            <section>
+              <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-200 mb-4">How to use this AI Art Prompt Randomizer</h2>
+              <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
+                Stuck on ideas? This tool generates viral prompts for Midjourney, Stable Diffusion, and Nano Banana. Simply click generate, and let our AI inspire your next masterpiece.
+              </p>
+            </section>
+            
+            <section>
+              <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-200 mb-4">Why use Scribely for Storytelling?</h2>
+              <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
+                Every image tells a story. Use these visual prompts to kickstart your novel or screenplay using Scribely's AI writing tools.
+              </p>
+            </section>
+            
+            <section>
+              <h3 className="text-xl font-semibold text-slate-900 dark:text-slate-200 mb-4">FAQ</h3>
+              <div className="space-y-4">
+                <div className="bg-slate-50 dark:bg-slate-800/50 rounded-lg p-4">
+                  <h4 className="font-medium text-slate-900 dark:text-slate-200 mb-2">Is it free?</h4>
+                  <p className="text-slate-600 dark:text-slate-400 text-sm">
+                    Yes! This AI Art Prompt Randomizer is completely free to use for both personal and commercial projects.
+                  </p>
+                </div>
+                
+                <div className="bg-slate-50 dark:bg-slate-800/50 rounded-lg p-4">
+                  <h4 className="font-medium text-slate-900 dark:text-slate-200 mb-2">Can I use it for commercial art?</h4>
+                  <p className="text-slate-600 dark:text-slate-400 text-sm">
+                    Absolutely! All generated prompts are royalty-free and can be used for commercial artwork and projects.
+                  </p>
+                </div>
+                
+                <div className="bg-slate-50 dark:bg-slate-800/50 rounded-lg p-4">
+                  <h4 className="font-medium text-slate-900 dark:text-slate-200 mb-2">Which AI models are supported?</h4>
+                  <p className="text-slate-600 dark:text-slate-400 text-sm">
+                    Our tool is optimized for Midjourney, Stable Diffusion, and the new Nano Banana model, but it works with most AI art generators.
+                  </p>
+                </div>
+              </div>
+            </section>
           </div>
         </div>
       </div>

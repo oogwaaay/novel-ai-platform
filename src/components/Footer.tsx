@@ -4,7 +4,7 @@ export default function Footer() {
   return (
     <footer className="bg-slate-900 text-slate-300 border-t border-slate-800">
       <div className="max-w-6xl mx-auto px-4 py-12">
-        <div className="grid md:grid-cols-4 gap-8 mb-8">
+        <div className="grid md:grid-cols-5 gap-8 mb-8">
           {/* Brand */}
           <div className="space-y-4">
             <Link to="/" className="text-xl font-semibold text-white">
@@ -32,6 +32,28 @@ export default function Footer() {
               <li>
                 <Link to="/dashboard" className="hover:text-white transition">
                   Dashboard
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Free AI Tools */}
+          <div>
+            <h3 className="text-sm font-semibold text-white mb-4 uppercase tracking-wide">Free AI Tools</h3>
+            <ul className="space-y-2 text-sm">
+              <li>
+                <Link to="/ai-prompt-generator" className="hover:text-white transition">
+                  AI Art Prompt Generator
+                </Link>
+              </li>
+              <li>
+                <Link to="/tools/fantasy-name-generator" className="hover:text-white transition">
+                  Fantasy Name Generator
+                </Link>
+              </li>
+              <li>
+                <Link to="/generator" className="hover:text-white transition">
+                  Micro-Novel Starter
                 </Link>
               </li>
             </ul>

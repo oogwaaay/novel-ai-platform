@@ -7,6 +7,7 @@ import ThemeToggle from './ThemeToggle';
 
 const navLinks = [
   { to: '/generator', label: 'Generator' },
+  { to: '/ai-prompt-generator', label: 'AI Tools' },
   { to: '/dashboard', label: 'Dashboard' },
   { to: '/pricing', label: 'Pricing' },
   { to: '/help', label: 'Help' },
