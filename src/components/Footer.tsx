@@ -52,7 +52,7 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link to="/generator" className="hover:text-white transition">
+                <Link to="/tools/story-starter" className="hover:text-white transition">
                   Micro-Novel Starter
                 </Link>
               </li>

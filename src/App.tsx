@@ -21,6 +21,7 @@ import ToastContainer from './components/ToastContainer';
 import AIPromptGenerator from './pages/AIPromptGenerator';
 import PaymentSuccess from './pages/PaymentSuccess';
 import FantasyNameGenerator from './pages/FantasyNameGenerator';
+import MicroNovelStarterPage from './pages/MicroNovelStarterPage';
 
 // OAuth callback handler component
 function OAuthCallback() {
@@ -98,6 +99,7 @@ function App() {
           <Route path="/ai-prompt-generator" element={<AIPromptGenerator />} />
           <Route path="/payment-success" element={<PaymentSuccess />} />
           <Route path="/tools/fantasy-name-generator" element={<FantasyNameGenerator />} />
+          <Route path="/tools/story-starter" element={<MicroNovelStarterPage />} />
           <Route path="/auth/callback" element={<OAuthCallback />} />
         </Routes>
       </main>
