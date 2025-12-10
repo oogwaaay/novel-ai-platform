@@ -46,7 +46,10 @@ export default function FantasyNameGenerator() {
             <p className="text-indigo-100 text-lg mb-6">
               Like this name? Create a detailed character profile for them in Scribely.
             </p>
-            <button className="px-8 py-4 bg-white text-indigo-600 font-semibold rounded-xl transition-all transform hover:scale-105 active:scale-95 shadow-lg">
+            <button 
+              onClick={() => window.location.href = '/generator'} 
+              className="px-8 py-4 bg-white text-indigo-600 font-semibold rounded-xl transition-all transform hover:scale-105 active:scale-95 shadow-lg"
+            >
               Create Character Profile
             </button>
           </div>

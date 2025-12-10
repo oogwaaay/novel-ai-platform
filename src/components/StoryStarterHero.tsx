@@ -57,20 +57,20 @@ export default function StoryStarterHero() {
   };
 
   return (
-    <section className="py-16 px-4 bg-gradient-to-b from-slate-900 to-slate-800 text-white">
+    <section className="py-16 px-4 bg-gradient-to-b from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 text-slate-900 dark:text-white">
       <div className="max-w-4xl mx-auto">
         {/* Headline */}
-        <h1 className="text-4xl md:text-5xl font-bold text-center mb-8 bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-purple-400">
+        <h1 className="text-4xl md:text-5xl font-bold text-center mb-8 bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 to-purple-500 dark:from-indigo-400 dark:to-purple-400">
           Stop Staring at a Blank Page. Start Writing in Seconds.
         </h1>
         
         {/* Input Area */}
-        <div className="bg-slate-800/50 backdrop-blur-md rounded-2xl border border-slate-700/50 p-6 mb-8">
+        <div className="bg-white/80 dark:bg-slate-800/50 backdrop-blur-md rounded-2xl border border-slate-200 dark:border-slate-700/50 p-6 mb-8">
           <textarea
             value={idea}
             onChange={(e) => setIdea(e.target.value)}
             placeholder="Enter a simple idea (e.g., A detective finds a time machine in his attic...)"
-            className="w-full bg-slate-900/70 border border-slate-700/50 rounded-xl p-4 text-white text-lg min-h-[120px] focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+            className="w-full bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-700/50 rounded-xl p-4 text-slate-900 dark:text-white text-lg min-h-[120px] focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
           />
           
           <button
@@ -93,9 +93,9 @@ export default function StoryStarterHero() {
         
         {/* Output Area */}
         {generatedText && (
-          <div className="bg-white/10 backdrop-blur-md rounded-2xl border border-slate-700/50 p-6 mb-8">
-            <h2 className="text-xl font-semibold mb-4 text-indigo-400">Your Story Opening</h2>
-            <div className="bg-slate-900/70 rounded-xl p-6 text-white text-lg leading-relaxed min-h-[200px] font-serif">
+          <div className="bg-white/80 dark:bg-white/10 backdrop-blur-md rounded-2xl border border-slate-200 dark:border-slate-700/50 p-6 mb-8">
+            <h2 className="text-xl font-semibold mb-4 text-indigo-500 dark:text-indigo-400">Your Story Opening</h2>
+            <div className="bg-white dark:bg-slate-900/70 rounded-xl p-6 text-slate-900 dark:text-white text-lg leading-relaxed min-h-[200px] font-serif">
               {generatedText}
               {loading && <span className="animate-pulse">|</span>}
             </div>

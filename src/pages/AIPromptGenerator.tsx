@@ -285,7 +285,7 @@ export default function AIPromptGenerator() {
               <PrimaryButton
                 onClick={() => {
                   const encodedPrompt = encodeURIComponent(prompt);
-                  window.location.href = `https://scribelydesigns.top/generator?mode=visual_start&prompt=${encodedPrompt}`;
+                  window.location.href = `/generator?mode=visual_start&prompt=${encodedPrompt}`;
                 }}
                 disabled={!prompt || isGenerating}
                 className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-medium py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-[1.02] hover:shadow-lg relative group"
