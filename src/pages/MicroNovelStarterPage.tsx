@@ -1,19 +1,37 @@
 import React from 'react';
 import MicroNovelStarter from '../components/MicroNovelStarter';
 import LiveActivityFeed from '../components/LiveActivityFeed';
+import { SEO } from '../components/SEO';
 
 export default function MicroNovelStarterPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
-      {/* Header */}
+      <SEO
+        title="Micro-Novel Starter - Generate Creative Micro-Novel Openings | Scribely"
+        description="Generate creative micro-novel openings in seconds with our free AI micro-novel starter tool. Get inspired with unique story beginnings for various genres including fantasy, sci-fi, romance, mystery, horror, and humor."
+        keywords="micro-novel starter, micro-novel generator, ai micro-novel, short story generator, story starter, ai story openings, creative writing prompts"
+        image="https://scribelydesigns.top/brand1090.png"
+      />
+      {/* Header with Navigation */}
       <header className="bg-white dark:bg-slate-800 shadow-sm border-b border-slate-200 dark:border-slate-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
-            Micro-Novel Starter
-          </h1>
-          <p className="text-slate-600 dark:text-slate-400 mt-1">
-            Generate creative micro-novel openings in seconds
-          </p>
+          <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+            <div>
+              <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
+                Micro-Novel Starter
+              </h1>
+              <p className="text-slate-600 dark:text-slate-400 mt-1">
+                Generate creative micro-novel openings in seconds
+              </p>
+            </div>
+            {/* Quick Navigation Links */}
+            <nav className="flex gap-6 text-sm">
+              <a href="/" className="text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400">Home</a>
+              <a href="/generator" className="text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400">AI Generator</a>
+              <a href="/tools/fantasy-name-generator" className="text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400">Fantasy Names</a>
+              <a href="/ai-prompt-generator" className="text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400">AI Art Prompts</a>
+            </nav>
+          </div>
         </div>
       </header>
 

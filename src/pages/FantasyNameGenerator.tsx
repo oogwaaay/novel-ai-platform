@@ -2,19 +2,37 @@ import React from 'react';
 import CharacterNameGen from '../components/CharacterNameGen';
 import LiveActivityFeed from '../components/LiveActivityFeed';
 import SEOContentBlock from '../components/SEOContentBlock';
+import { SEO } from '../components/SEO';
 
 export default function FantasyNameGenerator() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-      {/* Header */}
+      <SEO
+        title="Fantasy Name Generator - Create Unique Character Names | Scribely"
+        description="Generate unique and memorable fantasy character names for your novels, games, and stories. Create names for different genres and genders with our free AI fantasy name generator."
+        keywords="fantasy name generator, character name generator, ai fantasy names, fantasy character names, name generator for novels, free fantasy name generator"
+        image="https://scribelydesigns.top/brand1090.png"
+      />
+      {/* Header with Navigation */}
       <header className="bg-white shadow-sm border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <h1 className="text-2xl font-bold text-slate-900">
-            Fantasy Name Generator
-          </h1>
-          <p className="text-slate-600 mt-1">
-            Create unique and memorable names for your fantasy characters
-          </p>
+          <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+            <div>
+              <h1 className="text-2xl font-bold text-slate-900">
+                Fantasy Name Generator
+              </h1>
+              <p className="text-slate-600 mt-1">
+                Create unique and memorable names for your fantasy characters
+              </p>
+            </div>
+            {/* Quick Navigation Links */}
+            <nav className="flex gap-6 text-sm">
+              <a href="/" className="text-slate-600 hover:text-indigo-600">Home</a>
+              <a href="/generator" className="text-slate-600 hover:text-indigo-600">AI Generator</a>
+              <a href="/tools/story-starter" className="text-slate-600 hover:text-indigo-600">Micro-Novel Starter</a>
+              <a href="/ai-prompt-generator" className="text-slate-600 hover:text-indigo-600">AI Art Prompts</a>
+            </nav>
+          </div>
         </div>
       </header>
 

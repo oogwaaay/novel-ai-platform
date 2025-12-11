@@ -80,6 +80,7 @@ export function SEO({
     updateOG('og:type', type);
     updateOG('og:image', image);
     updateOG('og:site_name', 'Scribely');
+    updateOG('og:locale', 'en_US');
 
     // Update Twitter Card tags
     const updateTwitter = (name: string, content: string) => {
@@ -96,6 +97,27 @@ export function SEO({
     updateTwitter('twitter:title', title);
     updateTwitter('twitter:description', description);
     updateTwitter('twitter:image', image);
+    updateTwitter('twitter:site', '@scribely');
+    updateTwitter('twitter:creator', '@scribely');
+    
+    // Add meta viewport for mobile optimization
+    let viewport = document.querySelector('meta[name="viewport"]');
+    if (!viewport) {
+      viewport = document.createElement('meta');
+      viewport.setAttribute('name', 'viewport');
+      document.head.appendChild(viewport);
+    }
+    viewport.setAttribute('content', 'width=device-width, initial-scale=1.0');
+    
+    // Add robots meta tag
+    let robots = document.querySelector('meta[name="robots"]');
+    if (!robots) {
+      robots = document.createElement('meta');
+      robots.setAttribute('name', 'robots');
+      document.head.appendChild(robots);
+    }
+    robots.setAttribute('content', 'index, follow');
+
 
     // Update article-specific meta tags
     if (type === 'article') {

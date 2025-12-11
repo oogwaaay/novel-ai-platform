@@ -72,7 +72,7 @@ export default function PaymentSuccess() {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-slate-900 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-white dark:bg-slate-900 flex flex-col items-center justify-center p-4">
       <SEO
         title="Payment Status"
         description="Check your payment status and subscription activation"
@@ -112,14 +112,32 @@ export default function PaymentSuccess() {
             <p className="text-slate-600 dark:text-slate-400">
               Your subscription has been activated.
             </p>
-            {/* Action Button */}
-            <div className="pt-4">
+            {/* Action Buttons */}
+            <div className="pt-4 space-y-4">
               <PrimaryButton
                 onClick={handleDashboardClick}
                 className="w-full bg-slate-900 hover:bg-slate-800 text-white"
               >
                 Go to Dashboard
               </PrimaryButton>
+              <PrimaryButton
+                onClick={handleHomeClick}
+                className="w-full bg-white dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-200 dark:border-slate-700"
+              >
+                Return to Home
+              </PrimaryButton>
+            </div>
+            {/* Additional Links */}
+            <div className="pt-6 text-sm text-slate-600 dark:text-slate-400">
+              <p>Explore more features:</p>
+              <div className="flex justify-center gap-4 mt-2">
+                <a href="/generator" className="text-indigo-600 dark:text-indigo-400 hover:underline">
+                  Try AI Generator
+                </a>
+                <a href="/resources" className="text-indigo-600 dark:text-indigo-400 hover:underline">
+                  View Resources
+                </a>
+              </div>
             </div>
           </div>
         )}
@@ -140,17 +158,44 @@ export default function PaymentSuccess() {
             <p className="text-slate-600 dark:text-slate-400">
               We couldn't verify your payment. Please try again or contact support.
             </p>
-            {/* Action Button */}
-            <div className="pt-4">
+            {/* Action Buttons */}
+            <div className="pt-4 space-y-4">
               <PrimaryButton
                 onClick={handleHomeClick}
                 className="w-full bg-slate-900 hover:bg-slate-800 text-white"
               >
                 Return to Home
               </PrimaryButton>
+              <PrimaryButton
+                onClick={() => navigate('/pricing')}
+                className="w-full bg-white dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-200 dark:border-slate-700"
+              >
+                Try Payment Again
+              </PrimaryButton>
+            </div>
+            {/* Additional Links */}
+            <div className="pt-6 text-sm text-slate-600 dark:text-slate-400">
+              <p>Need help?</p>
+              <div className="flex justify-center gap-4 mt-2">
+                <a href="/help" className="text-indigo-600 dark:text-indigo-400 hover:underline">
+                  Visit Help Center
+                </a>
+                <a href="mailto:support@scribelydesigns.top" className="text-indigo-600 dark:text-indigo-400 hover:underline">
+                  Contact Support
+                </a>
+              </div>
             </div>
           </div>
         )}
+      </div>
+      
+      {/* Footer Links */}
+      <div className="mt-12 text-sm text-slate-600 dark:text-slate-400">
+        <div className="flex flex-wrap justify-center gap-6">
+          <a href="/terms" className="hover:text-indigo-600 dark:hover:text-indigo-400">Terms</a>
+          <a href="/privacy" className="hover:text-indigo-600 dark:hover:text-indigo-400">Privacy</a>
+          <a href="/help" className="hover:text-indigo-600 dark:hover:text-indigo-400">Help</a>
+        </div>
       </div>
     </div>
   );

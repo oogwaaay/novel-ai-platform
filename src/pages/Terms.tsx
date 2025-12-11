@@ -8,7 +8,7 @@ export default function Terms() {
     <div className="bg-white min-h-screen py-16">
       <SEO
         title="Terms of Service - Scribely"
-        description="Terms of Service for Scribely. Read the rules and conditions for using our writing tools."
+        description="Terms of Service for Scribely. Learn the terms and conditions for using our service."
         keywords="terms of service, terms and conditions, scribely"
         image="https://scribelydesigns.top/brand1090.png"
         jsonLd={{
@@ -25,9 +25,21 @@ export default function Terms() {
         }}
       />
       <div className="max-w-3xl mx-auto px-4">
-        <Link to="/" className="text-indigo-600 hover:text-indigo-700 text-sm font-medium mb-8 inline-block">
-          ← Back to home
-        </Link>
+        {/* Navigation Links */}
+        <nav className="flex gap-6 text-sm font-medium mb-8">
+          <Link to="/" className="text-indigo-600 hover:text-indigo-700">
+            ← Back to home
+          </Link>
+          <Link to="/privacy" className="text-slate-600 hover:text-indigo-600">
+            Privacy Policy
+          </Link>
+          <Link to="/generator" className="text-slate-600 hover:text-indigo-600">
+            Try AI Generator
+          </Link>
+          <Link to="/tools/story-starter" className="text-slate-600 hover:text-indigo-600">
+            Micro-Novel Starter
+          </Link>
+        </nav>
         <h1 className="text-4xl font-semibold text-slate-900 mb-8">Terms of Service</h1>
         <div className="prose prose-slate max-w-none space-y-6 text-slate-600">
           <p className="text-sm text-slate-500">Last updated: {lastUpdated}</p>
