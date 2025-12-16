@@ -4,6 +4,7 @@ import { useAuthStore } from '../store/authStore';
 import UserMenu from './UserMenu';
 import LoginModal from './LoginModal';
 import ThemeToggle from './ThemeToggle';
+import PointsDisplay from './PointsDisplay';
 
 const navLinks = [
   { to: '/generator', label: 'Generator' },
@@ -54,6 +55,9 @@ export default function Header() {
           <div className="flex items-center gap-3">
             {/* Theme Toggle */}
             <ThemeToggle />
+            
+            {/* Points Display */}
+            {isAuthenticated && <PointsDisplay />}
             
             {isAuthenticated ? (
               <UserMenu />
