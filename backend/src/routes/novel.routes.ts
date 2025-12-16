@@ -4,6 +4,8 @@ import dotenv from 'dotenv';
 import { authMiddleware, type AuthRequest } from '../middleware/auth';
 import { recordUsage } from '../services/userStore';
 import { aiGenerationRateLimit } from '../middleware/rateLimit';
+import { checkAndDeductPoints, refundPoints } from '../lib/billing-guard';
+import type { ActionType } from '../config/billing';
 
 // 确保在读取环境变量前加载 .env
 dotenv.config();
@@ -163,7 +165,7 @@ const buildStyleInstruction = (style: any): string => {
   return instructions.length > 0 ? `\n\nMaintain the user's writing voice and style: ${instructions.join(' ')}` : '';
 };
 
-router.post('/generate', authMiddleware, async (req, res) => {
+router.post('/generate', authMiddleware, async (req: AuthRequest, res) => {
   try {
     const {
       genre,
@@ -225,6 +227,24 @@ router.post('/generate', authMiddleware, async (req, res) => {
       return res.status(400).json({ error: 'Knowledge must be an array' });
     }
 
+    // Get user ID from request
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
+
+    // Map request type to billing action
+    const action: ActionType = type === 'outline' ? 'GENERATE_OUTLINE' : 'GENERATE_CHAPTER';
+    
+    // Step 1: Check and deduct points
+    const billingResult = await checkAndDeductPoints(userId, action);
+    if (!billingResult.permitted) {
+      return res.status(402).json({ 
+        error: 'Insufficient points for this operation',
+        remainingPoints: billingResult.remainingPoints
+      });
+    }
+
     const requestedContextWindow = Math.min(
       contextWindowWords ||
         (contextStrategy === 'precision' ? 2000 : contextStrategy === 'extended' ? 8000 : 4000),
@@ -277,25 +297,36 @@ router.post('/generate', authMiddleware, async (req, res) => {
 
     if (type === 'outline') {
       // Generate outline
-      const completion = await openai.chat.completions.create({
-        model: 'deepseek-chat', // DeepSeek 模型名称
-        messages: [
-          {
-            role: 'system' as const,
-            content: `${systemPrompt} Create a detailed book outline with chapters and key plot points.`
-          },
-          {
-            role: 'user' as const,
-            content: `Create a ${length}-page ${genre} novel outline based on this idea: ${idea}\nLanguage requirement: ${languageInstruction}`
-          }
-        ],
-        max_tokens: 2000,
-        temperature: 0.8
-      });
+      let completion;
+      try {
+        completion = await openai.chat.completions.create({
+          model: 'deepseek-chat', // DeepSeek 模型名称
+          messages: [
+            {
+              role: 'system' as const,
+              content: `${systemPrompt} Create a detailed book outline with chapters and key plot points.`
+            },
+            {
+              role: 'user' as const,
+              content: `Create a ${length}-page ${genre} novel outline based on this idea: ${idea}\nLanguage requirement: ${languageInstruction}`
+            }
+          ],
+          max_tokens: 2000,
+          temperature: 0.8
+        });
+      } catch (error: any) {
+        console.error('Error calling DeepSeek API for outline:', error);
+        // Refund points if API call failed
+        if (billingResult.pointsDeducted > 0) {
+          await refundPoints(userId, billingResult.pointsDeducted);
+        }
+        throw error;
+      }
 
       return res.json({
         outline: completion.choices[0].message.content,
-        type: 'outline'
+        type: 'outline',
+        remainingPoints: billingResult.remainingPoints
       });
     } else {
       // 优化：对于长小说，先生成一个较短的版本（前几章）
@@ -309,40 +340,39 @@ router.post('/generate', authMiddleware, async (req, res) => {
       // 对于长小说，只生成前几章，而不是完整小说
       const chunks = Math.ceil(targetWordsForGeneration / 4000); // 每块4000字，减少API调用次数
       let fullContent = '';
-
-      for (let i = 0; i < chunks; i++) {
-        console.log(`生成第 ${i + 1}/${chunks} 部分...`);
-        
-        const completion = await openai.chat.completions.create({
-          model: 'deepseek-chat',
-          messages: [
-            { role: 'system' as const, content: systemPrompt },
-            {
-              role: 'user' as const,
-              content: i === 0
-                ? `Write the beginning chapters (about ${actualLength} pages) of a ${genre} novel based on this idea: ${idea}.${characterContext ? `\n${characterContext}` : ''} Make it engaging and well-written.\nLanguage requirement: ${languageInstruction}`
-                : `Continue the novel from where we left off.${characterContext ? `\n${characterContext}` : ''} Continue the story naturally and maintain consistency.\nLanguage requirement: ${languageInstruction}`
-            },
-            ...(i > 0 ? [{ role: 'assistant' as const, content: fullContent.slice(-3000) }] : [])
-          ],
-          max_tokens: 4000, // 增加每次生成的token数
-          temperature: 0.8
-        });
-
-        fullContent += completion.choices[0].message.content + '\n\n';
-        console.log(`第 ${i + 1} 部分完成，当前总字数：约 ${fullContent.length} 字`);
-      }
-
-      if (isLongNovel) {
-        fullContent += '\n\n[注：这是小说的前几章。如需完整版本，请分多次生成或使用"续写"功能继续创作。]';
-      }
-
-      console.log(`生成完成！总字数：约 ${fullContent.length} 字`);
-      const chapters = splitIntoChapters(fullContent);
       
-      // Record usage: 1 generation + pages used
-      const userId = (req as AuthRequest).user?.id;
-      if (userId) {
+      try {
+        for (let i = 0; i < chunks; i++) {
+          console.log(`生成第 ${i + 1}/${chunks} 部分...`);
+          
+          const completion = await openai.chat.completions.create({
+            model: 'deepseek-chat',
+            messages: [
+              { role: 'system' as const, content: systemPrompt },
+              {
+                role: 'user' as const,
+                content: i === 0
+                  ? `Write the beginning chapters (about ${actualLength} pages) of a ${genre} novel based on this idea: ${idea}.${characterContext ? `\n${characterContext}` : ''} Make it engaging and well-written.\nLanguage requirement: ${languageInstruction}`
+                  : `Continue the novel from where we left off.${characterContext ? `\n${characterContext}` : ''} Continue the story naturally and maintain consistency.\nLanguage requirement: ${languageInstruction}`
+              },
+              ...(i > 0 ? [{ role: 'assistant' as const, content: fullContent.slice(-3000) }] : [])
+            ],
+            max_tokens: 4000, // 增加每次生成的token数
+            temperature: 0.8
+          });
+
+          fullContent += completion.choices[0].message.content + '\n\n';
+          console.log(`第 ${i + 1} 部分完成，当前总字数：约 ${fullContent.length} 字`);
+        }
+
+        if (isLongNovel) {
+          fullContent += '\n\n[注：这是小说的前几章。如需完整版本，请分多次生成或使用"续写"功能继续创作。]';
+        }
+
+        console.log(`生成完成！总字数：约 ${fullContent.length} 字`);
+        const chapters = splitIntoChapters(fullContent);
+        
+        // Record usage: 1 generation + pages used
         const pagesUsed = Math.ceil(fullContent.length / 1250); // ~250 words per page, ~5 chars per word
         const totalTokens = chunks * 4000; // Rough estimate
         await recordUsage(userId, {
@@ -351,15 +381,23 @@ router.post('/generate', authMiddleware, async (req, res) => {
           tokens: totalTokens
         });
         console.log(`[Usage] Recorded: 1 generation, ${pagesUsed} pages, ~${totalTokens} tokens`);
+        
+        return res.json({
+          content: fullContent,
+          chapters,
+          type: 'full',
+          actualLength: actualLength,
+          isPartial: isLongNovel,
+          remainingPoints: billingResult.remainingPoints
+        });
+      } catch (error: any) {
+        console.error('Error during content generation:', error);
+        // Refund points if generation failed
+        if (billingResult.pointsDeducted > 0) {
+          await refundPoints(userId, billingResult.pointsDeducted);
+        }
+        throw error;
       }
-      
-      return res.json({
-        content: fullContent,
-        chapters,
-        type: 'full',
-        actualLength: actualLength,
-        isPartial: isLongNovel
-      });
     }
   } catch (error: any) {
     console.error('Error generating novel:', error);
@@ -809,6 +847,24 @@ router.post('/continue', authMiddleware, aiGenerationRateLimit, async (req: Auth
       return res.status(400).json({ error: 'Language must be a string' });
     }
 
+    // Get user ID from request
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
+
+    // Map to billing action for continuation
+    const action: ActionType = 'GENERATE_CHAPTER';
+    
+    // Step 1: Check and deduct points
+    const billingResult = await checkAndDeductPoints(userId, action);
+    if (!billingResult.permitted) {
+      return res.status(402).json({ 
+        error: 'Insufficient points for this operation',
+        remainingPoints: billingResult.remainingPoints
+      });
+    }
+
     const languageInstruction = buildLanguageInstruction(context, language);
     const knowledgeResult = buildKnowledgeContext(knowledge);
     const knowledgeContext = knowledgeResult.context;
@@ -896,24 +952,31 @@ router.post('/continue', authMiddleware, aiGenerationRateLimit, async (req: Auth
     }
 
     console.log('[Continue] Calling LLM with context length:', recentContext.length);
-    const completion = await openai.chat.completions.create({
-      model: 'deepseek-chat',
-      messages: [
-        { role: 'system' as const, content: systemPrompt },
-        {
-          role: 'user' as const,
-          content: `Context (recent story content):\n${recentContext}${characterContext}\n\n${prompt || 'Continue the story naturally from where it left off. Maintain the same writing style and narrative flow.'}`
-        }
-      ],
-      max_tokens: 2000,
-      temperature: 0.7
-    });
+    let completion;
+    try {
+      completion = await openai.chat.completions.create({
+        model: 'deepseek-chat',
+        messages: [
+          { role: 'system' as const, content: systemPrompt },
+          {
+            role: 'user' as const,
+            content: `Context (recent story content):\n${recentContext}${characterContext}\n\n${prompt || 'Continue the story naturally from where it left off. Maintain the same writing style and narrative flow.'}`
+          }
+        ],
+        max_tokens: 2000,
+        temperature: 0.7
+      });
+    } catch (error: any) {
+      console.error('Error calling DeepSeek API for continuation:', error);
+      // Refund points if API call failed
+      await refundPoints(userId, billingResult.pointsDeducted);
+      throw error;
+    }
 
     const continuedText = completion.choices[0].message.content || '';
     const totalTokens = completion.usage?.total_tokens || 0;
 
     // Record usage: pages used (continuation counts as generation too)
-    const userId = req.user?.id;
     if (userId) {
       const pagesUsed = Math.ceil(continuedText.length / 1250); // ~250 words per page, ~5 chars per word
       await recordUsage(userId, {
@@ -930,7 +993,8 @@ router.post('/continue', authMiddleware, aiGenerationRateLimit, async (req: Auth
         tokens: totalTokens
       },
       knowledgeUsed: usedKnowledgeIds.length > 0 ? usedKnowledgeIds : undefined,
-      contextMetadata: contextMetadata // Include context selection metadata
+      contextMetadata: contextMetadata, // Include context selection metadata
+      remainingPoints: billingResult.remainingPoints
     });
   } catch (error: any) {
     console.error('[Continue] Error details:', {
@@ -1042,6 +1106,24 @@ router.post('/assist', authMiddleware, aiGenerationRateLimit, async (req: AuthRe
       return res.status(400).json({ error: 'Action and text (min 20 chars) are required' });
     }
 
+    // Get user ID from request
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
+
+    // Map to billing action for AI assistant
+    const billingAction: ActionType = 'AI_CHAT';
+    
+    // Step 1: Check and deduct points
+    const billingResult = await checkAndDeductPoints(userId, billingAction);
+    if (!billingResult.permitted) {
+      return res.status(402).json({ 
+        error: 'Insufficient points for this operation',
+        remainingPoints: billingResult.remainingPoints
+      });
+    }
+
     const languageInstruction = buildLanguageInstruction(text, language);
     const knowledgeResult = buildKnowledgeContext(knowledge);
     const knowledgeContext = knowledgeResult.context;
@@ -1099,31 +1181,39 @@ Return a JSON array of {"character": "...", "goal": "...", "obstacle": "...", "e
       return res.status(500).json({ error: 'AI服务配置错误。请确保已在backend/.env文件中设置有效的DEEPSEEK_API_KEY或OPENAI_API_KEY，可参考.env.example文件。' });
     }
 
-    const completion = await openai.chat.completions.create({
-      model: 'deepseek-chat',
-      messages: [
-        { role: 'system' as const, content: systemPrompt },
-        {
-          role: 'user' as const,
-          content: `Passage:\n${text}\n\n${userPrompt}`
-        }
-      ],
-      max_tokens:
-        action === 'rewrite'
-          ? 2000
-          : action === 'suggest'
-          ? 800
-          : action === 'detect'
-          ? 1000
-          : action === 'storyTree'
-          ? 1200
-          : action === 'sceneBeats'
-          ? 1100
-          : action === 'characterArc'
-          ? 1100
-          : 1500,
-      temperature: action === 'detect' || action === 'storyTree' || action === 'characterArc' ? 0.3 : 0.7
-    });
+    let completion;
+    try {
+      completion = await openai.chat.completions.create({
+        model: 'deepseek-chat',
+        messages: [
+          { role: 'system' as const, content: systemPrompt },
+          {
+            role: 'user' as const,
+            content: `Passage:\n${text}\n\n${userPrompt}`
+          }
+        ],
+        max_tokens:
+          action === 'rewrite'
+            ? 2000
+            : action === 'suggest'
+            ? 800
+            : action === 'detect'
+            ? 1000
+            : action === 'storyTree'
+            ? 1200
+            : action === 'sceneBeats'
+            ? 1100
+            : action === 'characterArc'
+            ? 1100
+            : 1500,
+        temperature: action === 'detect' || action === 'storyTree' || action === 'characterArc' ? 0.3 : 0.7
+      });
+    } catch (error: any) {
+      console.error('Error calling DeepSeek API for assistant:', error);
+      // Refund points if API call failed
+      await refundPoints(userId, billingResult.pointsDeducted);
+      throw error;
+    }
 
     const content = completion.choices[0].message.content || '';
     const totalTokens = completion.usage?.total_tokens || 0;
@@ -1237,7 +1327,8 @@ Return a JSON array of {"character": "...", "goal": "...", "obstacle": "...", "e
       usage: {
         tokens: totalTokens
       },
-      knowledgeUsed: usedKnowledgeIds.length > 0 ? usedKnowledgeIds : undefined
+      knowledgeUsed: usedKnowledgeIds.length > 0 ? usedKnowledgeIds : undefined,
+      remainingPoints: billingResult.remainingPoints
     });
   } catch (error: any) {
     console.error('[Assist] Error:', error);

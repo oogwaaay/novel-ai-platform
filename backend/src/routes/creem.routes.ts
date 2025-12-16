@@ -162,10 +162,10 @@ router.post(
       // Handle different event types
       switch (type) {
         case 'payment.succeeded':
+        case 'invoice.paid':
         case 'subscription.renewed':
-          // Update database, extend user subscription
-          console.log('🔄 Updating subscription for user:', data.customer_id);
-          // TODO: Implement database update logic
+          // Update database, extend user subscription and grant points
+          await handleSubscriptionPayment(data);
           break;
 
         case 'subscription.canceled':
@@ -173,6 +173,12 @@ router.post(
           // Update database, mark subscription as canceled
           console.log('❌ Canceling subscription for user:', data.customer_id);
           // TODO: Implement database update logic
+          break;
+
+        case 'subscription.refunded':
+        case 'payment.refunded':
+          // Handle subscription refund - reset user balance to 0 as a safety measure
+          await handleSubscriptionRefund(data);
           break;
 
         default:
@@ -183,9 +189,204 @@ router.post(
       return res.status(200).json({ received: true });
     } catch (error: any) {
       console.error('Error handling webhook:', error.message);
+      console.error('Error stack:', error.stack);
       return res.status(500).json({ error: 'Failed to handle webhook' });
     }
   }
 );
+
+// Helper function: Handle subscription payment and grant points
+async function handleSubscriptionPayment(data: any) {
+  try {
+    // Import supabaseAdmin client inside the function to avoid circular dependency
+    const { supabaseAdmin } = require('../services/supabaseClient');
+    if (!supabaseAdmin) {
+      console.error('Supabase client not initialized');
+      return;
+    }
+
+    // Extract customer email and product ID from webhook data
+    const customerEmail = data.customer_email;
+    // 兼容处理：优先使用 product_id，其次使用 plan_id
+    const productId = data.product_id || data.plan_id || data.product?.id;
+    
+    if (!customerEmail || !productId) {
+      console.error('Missing customer_email or product/plan ID in webhook data');
+      return;
+    }
+
+    console.log('🔄 Processing subscription payment for:', customerEmail);
+    console.log('📦 Product ID:', productId);
+
+    // 🔧 产品ID到积分的映射关系（常量对象，便于维护）
+    const PLAN_REWARD_MAP = new Map([
+      // Starter Plan
+      ['prod_6pRi0DCl1h0fEqH3qAIX25', 5000],   // Starter 月付
+      ['prod_3n19V3nvW64SzHGxHFARMe', 70000],  // Starter 年付
+      // Pro Plan
+      ['prod_42F3odu5moDVtV9gC9oRQ7', 2000],    // Pro 月付
+      ['prod_1QTk96tAuK62ZKEMdWNpFJ', 30000],   // Pro 年付
+      // Unlimited Plan
+      ['prod_wWv176wMRUZsobW8J2aIB', 10000],    // Unlimited 月付
+      ['prod_gccFskF10GtgbgXXG9AGd', 150000]    // Unlimited 年付
+    ]);
+
+    // Determine points to grant based on product ID
+    const pointsToGrant = PLAN_REWARD_MAP.get(productId);
+    
+    // If product ID is not in the map, log error but return 200
+    if (pointsToGrant === undefined) {
+      console.error('Unknown product ID, skipping points grant:', productId);
+      return; // Return without error, don't throw 500
+    }
+
+    console.log('🎁 Granting', pointsToGrant, 'points to:', customerEmail);
+
+    // Find user by email in auth.users table
+    const { data: users, error: userError } = await supabaseAdmin
+      .from('auth.users')
+      .select('id')
+      .eq('email', customerEmail)
+      .limit(1);
+
+    if (userError) {
+      console.error('Error finding user by email:', userError.message);
+      throw userError;
+    }
+
+    if (!users || users.length === 0) {
+      console.log('User not found for email:', customerEmail, ' - ignoring');
+      return;
+    }
+
+    const userId = users[0].id;
+    console.log('👤 Found user:', userId);
+
+    // Use the add_user_points RPC function to grant points (atomic operation)
+    const { error: rpcError } = await supabaseAdmin.rpc('add_user_points', {
+      p_user_id: userId,
+      p_amount: pointsToGrant,
+      p_type: 'SUBSCRIPTION_RENEWAL',
+      p_description: `Subscription renewal for ${productId} plan`
+    });
+
+    if (rpcError) {
+      console.error('Error granting points to user:', rpcError.message);
+      throw rpcError;
+    }
+
+    console.log('✅ Successfully granted', pointsToGrant, 'points to user:', userId);
+  } catch (error: any) {
+    console.error('Error in handleSubscriptionPayment:', error.message);
+    console.error('Error stack:', error.stack);
+    throw error;
+  }
+}
+
+// Helper function: Handle subscription refund and reset balance to 0
+async function handleSubscriptionRefund(data: any) {
+  try {
+    // Import supabaseAdmin client inside the function to avoid circular dependency
+    const { supabaseAdmin } = require('../services/supabaseClient');
+    if (!supabaseAdmin) {
+      console.error('Supabase client not initialized');
+      return;
+    }
+
+    // Extract customer email from webhook data
+    const customerEmail = data.customer_email;
+    
+    if (!customerEmail) {
+      console.error('Missing customer_email in webhook refund data');
+      return;
+    }
+
+    console.log('🔄 Processing subscription refund for:', customerEmail);
+
+    // Find user by email in auth.users table
+    const { data: users, error: userError } = await supabaseAdmin
+      .from('auth.users')
+      .select('id')
+      .eq('email', customerEmail)
+      .limit(1);
+
+    if (userError) {
+      console.error('Error finding user by email:', userError.message);
+      throw userError;
+    }
+
+    if (!users || users.length === 0) {
+      console.log('User not found for email:', customerEmail, ' - ignoring');
+      return;
+    }
+
+    const userId = users[0].id;
+    console.log('👤 Found user:', userId);
+
+    // Get current balance first (optional, to record the actual amount cleared)
+    const { data: wallets, error: walletError } = await supabaseAdmin
+      .from('user_wallets')
+      .select('id, balance')
+      .eq('user_id', userId)
+      .limit(1);
+
+    if (walletError) {
+      console.error('Error getting user wallet:', walletError.message);
+      throw walletError;
+    }
+
+    if (!wallets || wallets.length === 0) {
+      console.log('Wallet not found for user:', userId, ' - creating with 0 balance');
+      // Create wallet with 0 balance if it doesn't exist
+      await supabaseAdmin
+        .from('user_wallets')
+        .insert({
+          user_id: userId,
+          balance: 0,
+          total_earned: 0
+        });
+      return;
+    }
+
+    const walletId = wallets[0].id;
+    const currentBalance = wallets[0].balance;
+    
+    // Reset balance to 0
+    const { error: updateError } = await supabaseAdmin
+      .from('user_wallets')
+      .update({
+        balance: 0,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', walletId);
+
+    if (updateError) {
+      console.error('Error resetting user balance:', updateError.message);
+      throw updateError;
+    }
+
+    // Record transaction
+    const { error: transactionError } = await supabaseAdmin
+      .from('point_transactions')
+      .insert({
+        wallet_id: walletId,
+        amount: -currentBalance, // Record the actual amount cleared
+        type: 'SYSTEM_REFUND_CLEAR',
+        description: `Subscription refunded. Balance reset from ${currentBalance} to 0 by system.`
+      });
+
+    if (transactionError) {
+      console.error('Error recording refund transaction:', transactionError.message);
+      throw transactionError;
+    }
+
+    console.log('✅ Successfully reset balance to 0 for user:', userId);
+    console.log('📝 Original balance:', currentBalance);
+  } catch (error: any) {
+    console.error('Error in handleSubscriptionRefund:', error.message);
+    console.error('Error stack:', error.stack);
+    throw error;
+  }
+}
 
 export { router as creemRoutes };

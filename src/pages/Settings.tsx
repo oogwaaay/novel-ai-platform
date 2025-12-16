@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { fetchCurrentUser } from '../api/authApi';
 import { SEO } from '../components/SEO';
+import PointsHistory from '../components/PointsHistory';
 
 export default function Settings() {
   const { user, setUser, token } = useAuthStore();
@@ -198,6 +199,11 @@ export default function Settings() {
             </span>
           </div>
         </div>
+      </div>
+
+      {/* Points History Section */}
+      <div className="mt-8">
+        <PointsHistory />
       </div>
     </div>
   );
