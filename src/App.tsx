@@ -24,6 +24,7 @@ import FantasyNameGenerator from './pages/FantasyNameGenerator';
 import MicroNovelStarterPage from './pages/MicroNovelStarterPage';
 import PointsNotification from './components/PointsNotification';
 import { PointsProvider } from './context/PointsContext';
+import CookieConsentBanner from './components/CookieConsentBanner';
 
 // OAuth callback handler component
 function OAuthCallback() {
@@ -84,9 +85,9 @@ function App() {
 
   return (
     <PointsProvider>
-      <div className="min-h-screen flex flex-col">
+      <div className="min-h-screen flex flex-col bg-[url('/background.png')] bg-cover bg-center bg-fixed bg-no-repeat">
         <Header />
-        <main className="flex-1">
+        <main className="flex-1 bg-transparent">
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/generator" element={<Generator />} />
@@ -110,6 +111,7 @@ function App() {
         <NotificationSystem />
         <ToastContainer />
         <PointsNotification />
+        <CookieConsentBanner />
       </div>
     </PointsProvider>
   );

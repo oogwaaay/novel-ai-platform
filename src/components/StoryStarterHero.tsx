@@ -6,6 +6,7 @@ import { updateSubscription } from '../api/authApi';
 import { CREEM_PRODUCT_IDS } from '../config/products';
 import LoginModal from './LoginModal';
 import type { SubscriptionTier } from '../types/subscription';
+import { CAPABILITY_PROFILES } from '../config/capabilities';
 // 使用环境变量获取 API 基础 URL，开发环境为空字符串(走代理)，生产环境为 Railway 域名
 const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
@@ -133,16 +134,16 @@ export default function StoryStarterHero() {
   };
 
   return (
-    <section className="py-12 px-4 bg-gradient-to-b from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 text-slate-900 dark:text-white">
+    <section className="py-12 px-4 bg-transparent text-slate-900 dark:text-white">
       <div className="max-w-4xl mx-auto">
         {/* Headline */}
-        <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-center mb-4 bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-300 dark:to-purple-300">
+        <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-center mb-4 bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-200 dark:to-purple-200">
           Stop Staring at a Blank Page. Start Writing in Seconds.
         </h1>
         
         {/* Subheadline with points incentive */}
-        <p className="text-base sm:text-lg md:text-xl text-center text-slate-600 dark:text-slate-300 mb-8">
-          Turn your idea into a story. Join now and get <span className="text-indigo-600 dark:text-indigo-400 font-semibold">💎 500 Free Points!</span>
+        <p className="text-base sm:text-lg md:text-xl text-center text-slate-600 dark:text-slate-200 mb-8">
+          Turn your idea into a story. Join now and get <span className="text-indigo-600 dark:text-indigo-300 font-semibold">💎 500 Free Points!</span>
         </p>
         
         {/* Input Area */}
@@ -175,7 +176,7 @@ export default function StoryStarterHero() {
         {/* Output Area */}
         {generatedText && (
           <div className="bg-white/80 dark:bg-slate-800/90 backdrop-blur-md rounded-2xl border border-slate-200 dark:border-slate-700/80 p-4 sm:p-6 mb-8">
-            <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 text-indigo-500 dark:text-indigo-400">Your Story Opening</h2>
+            <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 text-indigo-500 dark:text-indigo-300">Your Story Opening</h2>
             <div className="bg-white dark:bg-slate-900/90 rounded-xl p-4 sm:p-6 text-slate-900 dark:text-white text-base sm:text-lg leading-relaxed min-h-[150px] sm:min-h-[200px] font-serif">
               {generatedText}
               {loading && <span className="animate-pulse">|</span>}
@@ -199,35 +200,35 @@ export default function StoryStarterHero() {
         
         {/* Features Section - Added by Trae */}
         <div className="mt-12 sm:mt-16">
-          <h2 className="text-2xl sm:text-3xl font-bold text-center mb-8 sm:mb-12">What You Can Do with Scribely</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold text-center mb-8 sm:mb-12 text-slate-900 dark:text-white">What You Can Do with Scribely</h2>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 sm:gap-8">
             {/* Feature 1: AI Writing */}
             <div className="bg-white/80 dark:bg-slate-800/90 backdrop-blur-md rounded-2xl border border-slate-200 dark:border-slate-700/80 p-4 sm:p-6 text-center hover:transform hover:scale-105 transition-transform">
               <div className="text-3xl sm:text-4xl mb-3 sm:mb-4">📝</div>
-              <h3 className="text-lg sm:text-xl font-semibold mb-1 sm:mb-2">AI Writing</h3>
-              <p className="text-slate-600 dark:text-slate-300 text-sm sm:text-base">Infinite text generation for Pro users.</p>
+              <h3 className="text-lg sm:text-xl font-semibold mb-1 sm:mb-2 text-slate-900 dark:text-white">AI Writing</h3>
+              <p className="text-slate-600 dark:text-slate-200 text-sm sm:text-base">Infinite text generation for Pro users.</p>
             </div>
             
             {/* Feature 2: Character Art */}
             <div className="bg-white/80 dark:bg-slate-800/90 backdrop-blur-md rounded-2xl border border-slate-200 dark:border-slate-700/80 p-4 sm:p-6 text-center hover:transform hover:scale-105 transition-transform">
               <div className="text-3xl sm:text-4xl mb-3 sm:mb-4">🎨</div>
-              <h3 className="text-lg sm:text-xl font-semibold mb-1 sm:mb-2">Character Art</h3>
-              <p className="text-slate-600 dark:text-slate-300 text-sm sm:text-base">Bring characters to life with AI art. <span className="text-amber-500 dark:text-amber-400 text-xs sm:text-sm">Coming Soon</span></p>
+              <h3 className="text-lg sm:text-xl font-semibold mb-1 sm:mb-2 text-slate-900 dark:text-white">Character Art</h3>
+              <p className="text-slate-600 dark:text-slate-200 text-sm sm:text-base">Bring characters to life with AI art. <span className="text-amber-500 dark:text-amber-400 text-xs sm:text-sm">Coming Soon</span></p>
             </div>
             
             {/* Feature 3: World Building */}
             <div className="bg-white/80 dark:bg-slate-800/90 backdrop-blur-md rounded-2xl border border-slate-200 dark:border-slate-700/80 p-4 sm:p-6 text-center hover:transform hover:scale-105 transition-transform">
               <div className="text-3xl sm:text-4xl mb-3 sm:mb-4">🌍</div>
-              <h3 className="text-lg sm:text-xl font-semibold mb-1 sm:mb-2">World Building</h3>
-              <p className="text-slate-600 dark:text-slate-300 text-sm sm:text-base">Deep world tracking and lore management.</p>
+              <h3 className="text-lg sm:text-xl font-semibold mb-1 sm:mb-2 text-slate-900 dark:text-white">World Building</h3>
+              <p className="text-slate-600 dark:text-slate-200 text-sm sm:text-base">Deep world tracking and lore management.</p>
             </div>
           </div>
         </div>
         
         {/* Pricing Preview - Added by Trae */}
         <div className="mt-16 sm:mt-20 bg-white/80 dark:bg-slate-800/90 backdrop-blur-md rounded-2xl border border-slate-200 dark:border-slate-700/80 p-6 sm:p-8">
-          <h2 className="text-2xl sm:text-3xl font-bold text-center mb-8 sm:mb-10">Simple, Transparent Pricing</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold text-center mb-8 sm:mb-10 text-slate-900 dark:text-white">Simple, Transparent Pricing</h2>
           
           <div className="flex items-center justify-center gap-4 py-4">
             <span className={`text-sm font-medium ${billingCycle === 'monthly' ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-300'}`}>
@@ -255,9 +256,22 @@ export default function StoryStarterHero() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 max-w-4xl mx-auto">
             {/* Starter Plan */}
             <div className="bg-white dark:bg-slate-900/70 rounded-xl p-5 sm:p-6 border border-slate-200 dark:border-slate-700/50">
-              <h3 className="text-lg sm:text-xl font-semibold mb-2">Starter</h3>
-              <div className="text-2xl sm:text-3xl font-bold mb-3 sm:mb-4">$12<span className="text-xs sm:text-sm font-normal text-slate-500 dark:text-slate-400">/mo</span></div>
-              <p className="text-slate-600 dark:text-slate-300 mb-5 sm:mb-6">5,000 Points</p>
+              <h3 className="text-lg sm:text-xl font-semibold mb-2 text-slate-900 dark:text-white">Starter</h3>
+              <div className="text-2xl sm:text-3xl font-bold mb-3 sm:mb-4">
+                ${billingCycle === 'yearly' ? CAPABILITY_PROFILES.starter.yearlyPrice : CAPABILITY_PROFILES.starter.monthlyPrice}
+                <span className="text-xs sm:text-sm font-normal text-slate-500 dark:text-slate-400">
+                  {billingCycle === 'yearly' ? '/year' : '/mo'}
+                </span>
+              </div>
+              {billingCycle === 'yearly' && (
+                <p className="text-sm text-slate-500 dark:text-slate-300 mb-3">
+                  ${Math.round(CAPABILITY_PROFILES.starter.yearlyPrice / 12)}/month
+                  <span className="ml-2 text-xs font-semibold text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/30 px-2 py-0.5 rounded-full">
+                    Save {CAPABILITY_PROFILES.starter.yearlyDiscount}%
+                  </span>
+                </p>
+              )}
+              <p className="text-slate-600 dark:text-slate-200 mb-5 sm:mb-6">5,000 Points</p>
               <button 
                 onClick={() => handleSelectPlan('starter')}
                 disabled={processingPayment}
@@ -272,9 +286,22 @@ export default function StoryStarterHero() {
               <div className="absolute -top-2.5 left-1/2 transform -translate-x-1/2 bg-indigo-500 text-white text-xs font-semibold px-3 py-1 rounded-full">
                 Most Popular
               </div>
-              <h3 className="text-lg sm:text-xl font-semibold mb-2">Pro</h3>
-              <div className="text-2xl sm:text-3xl font-bold mb-3 sm:mb-4">$25<span className="text-xs sm:text-sm font-normal text-slate-500 dark:text-slate-400">/mo</span></div>
-              <p className="text-slate-600 dark:text-slate-300 mb-5 sm:mb-6">Unlimited Text + 2,000 Points</p>
+              <h3 className="text-lg sm:text-xl font-semibold mb-2 text-slate-900 dark:text-white">Pro</h3>
+              <div className="text-2xl sm:text-3xl font-bold mb-3 sm:mb-4">
+                ${billingCycle === 'yearly' ? CAPABILITY_PROFILES.pro.yearlyPrice : CAPABILITY_PROFILES.pro.monthlyPrice}
+                <span className="text-xs sm:text-sm font-normal text-slate-500 dark:text-slate-400">
+                  {billingCycle === 'yearly' ? '/year' : '/mo'}
+                </span>
+              </div>
+              {billingCycle === 'yearly' && (
+                <p className="text-sm text-slate-500 dark:text-slate-300 mb-3">
+                  ${Math.round(CAPABILITY_PROFILES.pro.yearlyPrice / 12)}/month
+                  <span className="ml-2 text-xs font-semibold text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/30 px-2 py-0.5 rounded-full">
+                    Save {CAPABILITY_PROFILES.pro.yearlyDiscount}%
+                  </span>
+                </p>
+              )}
+              <p className="text-slate-600 dark:text-slate-200 mb-5 sm:mb-6">Unlimited Text + 2,000 Points</p>
               <button 
                 onClick={() => handleSelectPlan('pro')}
                 disabled={processingPayment}
@@ -286,9 +313,22 @@ export default function StoryStarterHero() {
             
             {/* Unlimited Plan */}
             <div className="bg-white dark:bg-slate-900/70 rounded-xl p-5 sm:p-6 border border-slate-200 dark:border-slate-700/50">
-              <h3 className="text-lg sm:text-xl font-semibold mb-2">Unlimited</h3>
-              <div className="text-2xl sm:text-3xl font-bold mb-3 sm:mb-4">$39.9<span className="text-xs sm:text-sm font-normal text-slate-500 dark:text-slate-400">/mo</span></div>
-              <p className="text-slate-600 dark:text-slate-300 mb-5 sm:mb-6">Unlimited + 10,000 Points</p>
+              <h3 className="text-lg sm:text-xl font-semibold mb-2 text-slate-900 dark:text-white">Unlimited</h3>
+              <div className="text-2xl sm:text-3xl font-bold mb-3 sm:mb-4">
+                ${billingCycle === 'yearly' ? CAPABILITY_PROFILES.unlimited.yearlyPrice : CAPABILITY_PROFILES.unlimited.monthlyPrice}
+                <span className="text-xs sm:text-sm font-normal text-slate-500 dark:text-slate-400">
+                  {billingCycle === 'yearly' ? '/year' : '/mo'}
+                </span>
+              </div>
+              {billingCycle === 'yearly' && (
+                <p className="text-sm text-slate-500 dark:text-slate-300 mb-3">
+                  ${Math.round(CAPABILITY_PROFILES.unlimited.yearlyPrice / 12)}/month
+                  <span className="ml-2 text-xs font-semibold text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/30 px-2 py-0.5 rounded-full">
+                    Save {CAPABILITY_PROFILES.unlimited.yearlyDiscount}%
+                  </span>
+                </p>
+              )}
+              <p className="text-slate-600 dark:text-slate-200 mb-5 sm:mb-6">Unlimited + 10,000 Points</p>
               <button 
                 onClick={() => handleSelectPlan('unlimited')}
                 disabled={processingPayment}

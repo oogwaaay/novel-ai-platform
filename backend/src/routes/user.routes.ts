@@ -310,6 +310,80 @@ router.get('/wallet/daily-limits', authMiddleware, async (req: AuthRequest, res)
   }
 });
 
+// Export user data
+router.get('/export-data', authMiddleware, async (req: AuthRequest, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    // Check if supabaseAdmin is initialized
+    if (!supabaseAdmin) {
+      console.error('Supabase client not initialized');
+      return res.status(500).json({ message: 'Database client not available' });
+    }
+
+    console.log(`[Data Export] Exporting data for user: ${userId}`);
+
+    // Get user profile
+    const user = await getUserById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Get user wallet
+    const { data: walletData } = await supabaseAdmin
+      .from('user_wallets')
+      .select('*')
+      .eq('user_id', userId)
+      .single();
+
+    // Get wallet transactions
+    const { data: transactions } = await supabaseAdmin
+      .from('point_transactions')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+
+    // Get usage data (mock for now, will be replaced with actual data)
+    const usageData = {
+      generationsThisMonth: 0,
+      lastResetDate: Date.now(),
+      totalGenerations: 0
+    };
+
+    // Get projects (mock for now, will be replaced with actual data)
+    const projects = [];
+
+    // Prepare export data
+    const exportData = {
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        createdAt: user.createdAt,
+        lastLoginAt: user.lastLoginAt,
+        subscription: user.subscription
+      },
+      wallet: walletData,
+      transactions,
+      usage: usageData,
+      projects,
+      exportDate: new Date().toISOString()
+    };
+
+    // Set response headers for file download
+    res.setHeader('Content-Disposition', `attachment; filename=scribely-export-${userId}-${new Date().toISOString().split('T')[0]}.json`);
+    res.setHeader('Content-Type', 'application/json');
+    res.status(200).json(exportData);
+
+  } catch (error: any) {
+    console.error(`[Data Export] Error exporting data for user ${req.user?.id}:`, error);
+    res.status(500).json({ message: 'Failed to export data' });
+  }
+});
+
 export { router as userRoutes };
 
 

@@ -88,10 +88,79 @@ export default function Privacy() {
             access patterns and maintain backups to reduce risk.
           </p>
 
+          <h2 className="text-2xl font-semibold text-slate-900 mt-8 mb-4">Cookies and Tracking Technologies</h2>
+          <p>
+            We use cookies and similar tracking technologies to enhance your experience, analyze site traffic, and personalize content. 
+            Cookies are small text files stored on your device that help us remember your preferences and improve our services.
+          </p>
+          <p>We use the following types of cookies:</p>
+          <ul>
+            <li>
+              <strong>Necessary cookies</strong>: These cookies are essential for the operation of our website and cannot be disabled.
+              They enable basic functions like page navigation and access to secure areas.
+            </li>
+            <li>
+              <strong>Analytics cookies</strong>: We use Ahrefs Analytics to collect information about how you use our website,
+              such as which pages you visit most often and how you arrived at our site. This data helps us improve our services.
+            </li>
+            <li>
+              <strong>Preference cookies</strong>: These cookies remember your preferences and settings, such as language and theme,
+              to provide a more personalized experience.
+            </li>
+          </ul>
+          <p>
+            You can manage your cookie preferences through your browser settings or by using the cookie consent banner on our website.
+            Please note that disabling certain cookies may affect the functionality of our services.
+          </p>
+
+          <h2 className="text-2xl font-semibold text-slate-900 mt-8 mb-4">Data Retention</h2>
+          <p>
+            We retain your personal data for as long as your account is active or as needed to provide you with our services.
+            After your account is closed, we will retain your data for a reasonable period to comply with legal obligations,
+            resolve disputes, and enforce our agreements.
+          </p>
+          <ul>
+            <li>Account information: Retained for 30 days after account closure, then deleted</li>
+            <li>Usage data: Retained for 12 months for analytics purposes</li>
+            <li>Project data: Deleted immediately upon account closure, unless required by law</li>
+          </ul>
+
+          <h2 className="text-2xl font-semibold text-slate-900 mt-8 mb-4">Data Breach Notification</h2>
+          <p>
+            In the event of a data breach that may affect your personal information, we will notify you and relevant authorities
+            within 72 hours, in accordance with applicable laws. We will provide information about the nature of the breach,
+            the types of data involved, and the steps you can take to protect yourself.
+          </p>
+
+          <h2 className="text-2xl font-semibold text-slate-900 mt-8 mb-4">Children's Privacy</h2>
+          <p>
+            Our services are not intended for children under the age of 13. We do not knowingly collect personal information
+            from children under 13. If we become aware that we have collected such information, we will take immediate steps
+            to delete it from our systems.
+          </p>
+
+          <h2 className="text-2xl font-semibold text-slate-900 mt-8 mb-4">International Data Transfers</h2>
+          <p>
+            Your information may be transferred to and processed in countries outside your country of residence, including
+            the United States. We ensure that appropriate safeguards are in place to protect your data as required by applicable laws,
+            such as standard contractual clauses or other approved mechanisms.
+          </p>
+
           <h2 className="text-2xl font-semibold text-slate-900 mt-8 mb-4">Your Rights</h2>
           <p>
-            Depending on your location, you may have the right to access, correct, or delete your personal data. You can
-            also request export of your data or closure of your account by contacting us.
+            Depending on your location, you may have the right to:
+          </p>
+          <ul>
+            <li>Access your personal data</li>
+            <li>Correct inaccurate or incomplete data</li>
+            <li>Delete your personal data</li>
+            <li>Export your data in a portable format</li>
+            <li>Restrict or object to the processing of your data</li>
+            <li>Withdraw consent at any time (where processing is based on consent)</li>
+          </ul>
+          <p>
+            You can exercise these rights by contacting us at <a href="mailto:support@scribelydesigns.top">support@scribelydesigns.top</a>
+            or through your account settings.
           </p>
 
           <h2 className="text-2xl font-semibold text-slate-900 mt-8 mb-4">Contact Us</h2>

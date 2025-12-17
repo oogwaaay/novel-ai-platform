@@ -5,6 +5,7 @@ import UserMenu from './UserMenu';
 import LoginModal from './LoginModal';
 import ThemeToggle from './ThemeToggle';
 import PointsDisplay from './PointsDisplay';
+import { PrimaryButton, SecondaryButton } from './ui';
 
 const navLinks = [
   { to: '/generator', label: 'Generator' },
@@ -86,18 +87,18 @@ export default function Header() {
               <UserMenu />
             ) : (
               <>
-                <button
+                <SecondaryButton
                   onClick={() => setShowLoginModal(true)}
-                  className="hidden md:inline-flex px-4 py-2 text-sm font-medium border border-slate-300 rounded-xl text-slate-700 hover:bg-slate-100 transition"
+                  className="hidden md:inline-flex px-4 py-2 text-sm"
                 >
                   Log in
-                </button>
-                <button
+                </SecondaryButton>
+                <PrimaryButton
                   onClick={() => setShowLoginModal(true)}
-                  className="hidden md:inline-flex px-4 py-2 text-sm font-semibold text-white bg-slate-900 rounded-xl hover:bg-slate-800 transition"
+                  className="hidden md:inline-flex px-4 py-2 text-sm"
                 >
                   Start for free
-                </button>
+                </PrimaryButton>
               </>
             )}
           </div>
@@ -127,24 +128,24 @@ export default function Header() {
               {/* Mobile Auth Buttons */}
               {!isAuthenticated && (
                 <div className="flex flex-col space-y-3 pt-4 border-t border-slate-200 dark:border-slate-700">
-                  <button
+                  <SecondaryButton
                     onClick={() => {
                       setShowLoginModal(true);
                       setShowMobileMenu(false);
                     }}
-                    className="w-full py-3 px-4 text-sm font-medium border border-slate-300 rounded-xl text-slate-700 hover:bg-slate-100 transition"
+                    className="w-full text-sm"
                   >
                     Log in
-                  </button>
-                  <button
+                  </SecondaryButton>
+                  <PrimaryButton
                     onClick={() => {
                       setShowLoginModal(true);
                       setShowMobileMenu(false);
                     }}
-                    className="w-full py-3 px-4 text-sm font-semibold text-white bg-slate-900 rounded-xl hover:bg-slate-800 transition"
+                    className="w-full text-sm"
                   >
                     Start for free
-                  </button>
+                  </PrimaryButton>
                 </div>
               )}
             </div>

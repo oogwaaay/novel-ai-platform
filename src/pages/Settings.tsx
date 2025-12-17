@@ -201,6 +201,60 @@ export default function Settings() {
         </div>
       </div>
 
+      <div className="mt-8 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
+        <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-4">Data & Privacy</h2>
+        
+        <div className="space-y-4">
+          <div>
+            <h3 className="text-sm font-medium text-slate-700 dark:text-white mb-2">Export Your Data</h3>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mb-3">
+              Download a copy of all your data, including your profile, projects, and usage information.
+            </p>
+            <button
+              onClick={async () => {
+                try {
+                  const API_BASE_URL = `${(import.meta.env.VITE_API_URL as string | undefined) || ''}/api`;
+                  const response = await fetch(`${API_BASE_URL}/user/export-data`, {
+                    method: 'GET',
+                    headers: {
+                      Authorization: `Bearer ${token}`
+                    }
+                  });
+
+                  if (!response.ok) {
+                    throw new Error('Failed to export data');
+                  }
+
+                  // Get the filename from the Content-Disposition header
+                  const contentDisposition = response.headers.get('Content-Disposition');
+                  const filenameMatch = contentDisposition?.match(/filename="([^"]+)"/);
+                  const filename = filenameMatch ? filenameMatch[1] : `scribely-export-${Date.now()}.json`;
+
+                  // Convert response to blob and download
+                  const blob = await response.blob();
+                  const url = window.URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = filename;
+                  document.body.appendChild(a);
+                  a.click();
+                  document.body.removeChild(a);
+                  window.URL.revokeObjectURL(url);
+
+                  setMessage({ type: 'success', text: 'Data exported successfully' });
+                } catch (error) {
+                  console.error('Failed to export data:', error);
+                  setMessage({ type: 'error', text: 'Failed to export data. Please try again.' });
+                }
+              }}
+              className="px-6 py-2.5 bg-slate-900 dark:bg-slate-700 text-white rounded-xl font-medium hover:bg-slate-800 dark:hover:bg-slate-600 transition"
+            >
+              Export My Data
+            </button>
+          </div>
+        </div>
+      </div>
+
       {/* Points History Section */}
       <div className="mt-8">
         <PointsHistory />
