@@ -1,6 +1,6 @@
 import { supabaseAdmin } from './supabaseClient';
 import { getUserById } from './userStore';
-import { SUBSCRIPTION_PLANS } from '../../src/types/subscription';
+import { SUBSCRIPTION_PLANS, SubscriptionTier } from '../types/subscription';
 
 /**
  * Structured logger for subscription operations
@@ -70,7 +70,7 @@ export const grantMonthlyPoints = async (): Promise<void> => {
         }
         
         // Get subscription tier
-        const subscriptionTier = user.subscription?.tier || 'free';
+        const subscriptionTier = (user.subscription?.tier || 'free') as SubscriptionTier;
         
         // Get monthly points based on subscription tier
         const monthlyPoints = SUBSCRIPTION_PLANS[subscriptionTier].monthlyPoints;
@@ -201,10 +201,23 @@ export const getSubscriptionDetails = async (userId: string) => {
       return null;
     }
     
-    const subscriptionTier = user.subscription?.tier || 'free';
+    const subscriptionTier = (user.subscription?.tier || 'free') as SubscriptionTier;
     const plan = SUBSCRIPTION_PLANS[subscriptionTier];
     
     // Get current wallet balance
+    if (!supabaseAdmin) {
+      logSubscriptionEvent('ERROR', userId, {
+        event: 'GET_SUBSCRIPTION_DETAILS',
+        error: 'Supabase client not initialized',
+        message: 'Database client not available'
+      });
+      return {
+        tier: subscriptionTier,
+        plan,
+        wallet: { balance: 0, available_balance: 0 }
+      };
+    }
+    
     const { data: wallet, error: walletError } = await supabaseAdmin
       .from('user_wallets')
       .select('balance, available_balance')

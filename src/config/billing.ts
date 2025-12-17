@@ -12,3 +12,15 @@ export const AI_ACTION_POINT_COSTS = {
 };
 
 export type AiActionType = keyof typeof AI_ACTION_POINT_COSTS;
+
+// Generate costs
+const BILLING_CONFIG = {
+  GENERATE_CHAPTER: {
+    points: 15
+  },
+  GENERATE_OUTLINE: {
+    points: 10
+  }
+};
+
+export { BILLING_CONFIG };

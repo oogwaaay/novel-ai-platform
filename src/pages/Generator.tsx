@@ -3201,7 +3201,6 @@ export default function Generator() {
                 </svg>
                 <span>Draft History</span>
               </SecondaryButton>
-            </div>
           </div>
         </GlassCard>
 
