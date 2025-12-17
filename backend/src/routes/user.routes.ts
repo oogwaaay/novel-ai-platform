@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { authMiddleware, type AuthRequest } from '../middleware/auth';
 import { getUserById, updateUser } from '../services/userStore';
 import { supabaseAdmin } from '../services/supabaseClient';
+import type { Project } from '../models/Project';
 
 const router = Router();
 
@@ -354,7 +355,7 @@ router.get('/export-data', authMiddleware, async (req: AuthRequest, res) => {
     };
 
     // Get projects (mock for now, will be replaced with actual data)
-    const projects = [];
+    const projects: Project[] = [];
 
     // Prepare export data
     const exportData = {
