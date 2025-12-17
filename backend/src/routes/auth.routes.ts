@@ -19,6 +19,7 @@ import {
   setUserSubscription,
   updateUser
 } from '../services/userStore';
+import { supabaseAdmin } from '../services/supabaseClient';
 
 const router = Router();
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -61,6 +62,31 @@ router.post(
   async (req: AuthRequest, res: Response) => {
     try {
       if (!handleValidation(req, res)) return;
+      
+      // Get user IP address for rate limiting
+      const userIp = req.ip || req.headers['x-forwarded-for'] as string || 'unknown';
+      console.log(`[Auth] Registration attempt from IP: ${userIp}`);
+      
+      // Check IP registration frequency limit (max 5 registrations per 24 hours)
+      if (supabaseAdmin) {
+        const { data: recentRegistrations, error: checkError } = await supabaseAdmin
+          .from('ip_registration_logs')
+          .select('id')
+          .eq('ip_address', userIp)
+          .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+          .limit(5);
+        
+        if (checkError) {
+          console.error('[Auth] Error checking IP registration limit:', checkError);
+          // Continue with registration if database check fails
+        } else if (recentRegistrations && recentRegistrations.length >= 5) {
+          console.warn(`[Auth] IP registration limit exceeded for: ${userIp}`);
+          return res.status(429).json({ 
+            message: 'Too many registrations from this IP address. Please try again later.' 
+          });
+        }
+      }
+      
       const { email, password, name } = req.body;
       const existingUser = await getUserByEmail(email);
       if (existingUser) {
@@ -70,6 +96,16 @@ router.post(
       const passwordHash = await bcrypt.hash(password, 10);
       const user = await createUserRecord({ email, passwordHash, name });
       const token = generateToken(user);
+      
+      // Record IP registration in database
+      if (supabaseAdmin) {
+        await supabaseAdmin
+          .from('ip_registration_logs')
+          .insert({
+            ip_address: userIp,
+            email
+          });
+      }
 
       res.json({
         user: serializeUser(user),

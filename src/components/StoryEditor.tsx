@@ -34,6 +34,7 @@ interface StoryEditorProps {
   onSelectionChange?: (payload: { text: string; position: { x: number; y: number }; range?: { index: number; length: number } } | null) => void;
   lockedRanges?: LockedRange[];
   onLockedSelectionAttempt?: (lock: LockedRange) => void;
+  enableGhostText?: boolean; // Enable Ghost Text suggestions
 }
 
 const StoryEditor = forwardRef<StoryEditorRef, StoryEditorProps>(({
@@ -49,13 +50,19 @@ const StoryEditor = forwardRef<StoryEditorRef, StoryEditorProps>(({
   knowledge,
   onSelectionChange,
   lockedRanges = [],
-  onLockedSelectionAttempt
+  onLockedSelectionAttempt,
+  enableGhostText = false
 }, ref) => {
   const [content, setContent] = useState(initialContent);
   const [loading, setLoading] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const [highlightRange, setHighlightRange] = useState<{ start: number; length: number } | null>(null);
+  // Ghost Text state
+  const [ghostText, setGhostText] = useState<string>('');
+  const [ghostTextRange, setGhostTextRange] = useState<{ start: number; length: number } | null>(null);
+  const [isGeneratingGhostText, setIsGeneratingGhostText] = useState(false);
   const quillRef = useRef<ReactQuill | null>(null);
+  const ghostTextTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const computeViewportPosition = (range: { index: number; length: number }) => {
     const quill = quillRef.current?.getEditor();
@@ -106,6 +113,33 @@ const StoryEditor = forwardRef<StoryEditorRef, StoryEditorProps>(({
     setIsMounted(true);
     setContent(initialContent);
   }, [initialContent]);
+
+  // Handle keyboard events to accept ghost text with Tab
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Tab' && ghostText) {
+        event.preventDefault();
+        acceptGhostText();
+      } else if (event.key === 'Escape' && ghostText) {
+        event.preventDefault();
+        clearGhostText();
+      }
+    };
+
+    const quillContainer = document.querySelector('.ql-container');
+    if (quillContainer) {
+      quillContainer.addEventListener('keydown', handleKeyDown);
+    }
+
+    return () => {
+      if (quillContainer) {
+        quillContainer.removeEventListener('keydown', handleKeyDown);
+      }
+      if (ghostTextTimeoutRef.current) {
+        clearTimeout(ghostTextTimeoutRef.current);
+      }
+    };
+  }, [ghostText, acceptGhostText, clearGhostText]);
 
   const handleSelectionChange = (range: Range | null, source: 'user' | 'api' | 'silent', _editor: UnprivilegedEditor) => {
     console.log('[StoryEditor] handleSelectionChange called:', { 
@@ -209,10 +243,74 @@ const StoryEditor = forwardRef<StoryEditorRef, StoryEditorProps>(({
     };
   }, [highlightRange]);
 
+  // Generate Ghost Text suggestions
+  const generateGhostText = async (text: string) => {
+    if (!enableGhostText || text.trim().length < 20) return;
+    
+    setIsGeneratingGhostText(true);
+    try {
+      // Simple implementation - in real app, this would call an AI API
+      // For now, we'll generate a random suggestion
+      const suggestions = [
+        " that would change the course of their lives forever.",
+        " as the sun began to set over the horizon.",
+        " with a sense of purpose they hadn't felt in years.",
+        " despite the challenges that lay ahead.",
+        " while memories of the past flooded their mind."
+      ];
+      const randomSuggestion = suggestions[Math.floor(Math.random() * suggestions.length)];
+      
+      // Set ghost text after a short delay to simulate AI generation
+      setTimeout(() => {
+        const quill = quillRef.current?.getEditor();
+        if (quill) {
+          const cursorPos = quill.getSelection()?.index || text.length;
+          setGhostText(randomSuggestion);
+          setGhostTextRange({ start: cursorPos, length: randomSuggestion.length });
+        }
+        setIsGeneratingGhostText(false);
+      }, 500);
+    } catch (error) {
+      console.error('Failed to generate ghost text:', error);
+      setIsGeneratingGhostText(false);
+    }
+  };
+
+  // Accept Ghost Text suggestion
+  const acceptGhostText = () => {
+    if (!ghostText || !ghostTextRange) return;
+    
+    const quill = quillRef.current?.getEditor();
+    if (quill) {
+      quill.insertText(ghostTextRange.start, ghostText, 'user');
+      setGhostText('');
+      setGhostTextRange(null);
+    }
+  };
+
+  // Clear Ghost Text suggestion
+  const clearGhostText = () => {
+    setGhostText('');
+    setGhostTextRange(null);
+  };
+
   const handleContentChange = (newContent: string, delta: DeltaStatic, source: Sources) => {
     setContent(newContent);
     if (onContentChange) {
       onContentChange(newContent, delta, source);
+    }
+    
+    // Clear ghost text when user types
+    clearGhostText();
+    
+    // Generate new ghost text after a delay
+    if (enableGhostText && source === 'user') {
+      if (ghostTextTimeoutRef.current) {
+        clearTimeout(ghostTextTimeoutRef.current);
+      }
+      ghostTextTimeoutRef.current = setTimeout(() => {
+        generateGhostText(newContent);
+      }, 1000);
     }
   };
 
@@ -276,7 +374,13 @@ const StoryEditor = forwardRef<StoryEditorRef, StoryEditorProps>(({
       }
     } catch (error: any) {
       console.error('Failed to continue writing:', error);
-      alert('Failed to continue writing. Please try again.');
+      // Handle insufficient points error
+      if (error.response?.status === 402) {
+        // Show points exhausted modal (this would be implemented in the parent component)
+        alert('积分不足！升级到 Pro 版获取无限积分，或完成任务赚取更多积分。');
+      } else {
+        alert('Failed to continue writing. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -285,7 +389,78 @@ const StoryEditor = forwardRef<StoryEditorRef, StoryEditorProps>(({
   const isFocus = variant === 'focus';
 
   return (
-    <div className={`story-editor ${compact ? 'story-editor-compact' : ''} ${isFocus ? 'story-editor-focus' : ''} space-y-4`}>
+    <div className={`story-editor ${compact ? 'story-editor-compact' : ''} ${isFocus ? 'story-editor-focus' : ''} space-y-4 relative`}>
+      {/* AI Features CSS */}
+      <style jsx>{`
+        /* Hide ReactQuill's default cursor when ghost text is active */
+        :global(.ql-editor .ghost-text) {
+          color: #94a3b8;
+          opacity: 0.7;
+          pointer-events: none;
+        }
+        
+        /* Add subtle background highlight to ghost text */
+        :global(.ql-editor .ghost-text-container) {
+          position: relative;
+        }
+        
+        /* Show tab hint when ghost text is active */
+        :global(.ghost-text-hint) {
+          position: absolute;
+          bottom: 8px;
+          right: 8px;
+          background: rgba(148, 163, 184, 0.1);
+          color: #64748b;
+          padding: 4px 8px;
+          border-radius: 4px;
+          font-size: 11px;
+          font-weight: 500;
+          pointer-events: none;
+        }
+        
+        /* AI Features Tooltip */
+        :global(.ai-features-tooltip) {
+          background: rgba(15, 23, 42, 0.95);
+          color: white;
+          padding: 8px 12px;
+          border-radius: 6px;
+          font-size: 12px;
+          font-weight: 500;
+          pointer-events: none;
+          z-index: 1000;
+        }
+        
+        /* AI Assistant Floating Button */
+        :global(.ai-assistant-float-btn) {
+          position: fixed;
+          bottom: 20px;
+          right: 20px;
+          z-index: 999;
+          background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+          color: white;
+          width: 56px;
+          height: 56px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          box-shadow: 0 4px 20px rgba(99, 102, 241, 0.3);
+          cursor: pointer;
+          transition: all 0.3s ease;
+        }
+        
+        :global(.ai-assistant-float-btn:hover) {
+          transform: scale(1.1);
+          box-shadow: 0 6px 25px rgba(99, 102, 241, 0.4);
+        }
+      `}</style>
+      
+      {/* AI Assistant Floating Button */}
+      <div className="ai-assistant-float-btn" title="AI Assistant">
+        <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+          <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+        </svg>
+      </div>
       {!isFocus && (
         <div className="flex items-center justify-end">
           <button
@@ -297,7 +472,7 @@ const StoryEditor = forwardRef<StoryEditorRef, StoryEditorProps>(({
           </button>
         </div>
       )}
-      <div className="bg-white rounded-xl border border-slate-200 font-[inherit]">
+      <div className="bg-white rounded-xl border border-slate-200 font-[inherit] relative">
         {isMounted && (
           <ReactQuill
             ref={quillRef}
@@ -316,6 +491,12 @@ const StoryEditor = forwardRef<StoryEditorRef, StoryEditorProps>(({
               ]
             }}
           />
+        )}
+        {/* Ghost Text Hint */}
+        {ghostText && (
+          <div className="ghost-text-hint">
+            Press <kbd className="px-1.5 py-0.5 bg-slate-200 rounded text-xs">Tab</kbd> to accept • <kbd className="px-1.5 py-0.5 bg-slate-200 rounded text-xs">Esc</kbd> to dismiss
+          </div>
         )}
       </div>
       {isFocus ? (

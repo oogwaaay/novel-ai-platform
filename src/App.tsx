@@ -22,6 +22,8 @@ import AIPromptGenerator from './pages/AIPromptGenerator';
 import PaymentSuccess from './pages/PaymentSuccess';
 import FantasyNameGenerator from './pages/FantasyNameGenerator';
 import MicroNovelStarterPage from './pages/MicroNovelStarterPage';
+import PointsNotification from './components/PointsNotification';
+import { PointsProvider } from './context/PointsContext';
 
 // OAuth callback handler component
 function OAuthCallback() {
@@ -81,32 +83,35 @@ function App() {
   }, [token]);
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <Header />
-      <main className="flex-1">
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/generator" element={<Generator />} />
-          <Route path="/pricing" element={<Pricing />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/help" element={<Help />} />
-          <Route path="/resources" element={<Resources />} />
-          <Route path="/updates" element={<Updates />} />
-          <Route path="/tutorials/:slug" element={<Tutorial />} />
-          <Route path="/privacy" element={<Privacy />} />
-          <Route path="/terms" element={<Terms />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="/ai-prompt-generator" element={<AIPromptGenerator />} />
-          <Route path="/payment-success" element={<PaymentSuccess />} />
-          <Route path="/tools/fantasy-name-generator" element={<FantasyNameGenerator />} />
-          <Route path="/tools/story-starter" element={<MicroNovelStarterPage />} />
-          <Route path="/auth/callback" element={<OAuthCallback />} />
-        </Routes>
-      </main>
-      <Footer />
-      <NotificationSystem />
-      <ToastContainer />
-    </div>
+    <PointsProvider>
+      <div className="min-h-screen flex flex-col">
+        <Header />
+        <main className="flex-1">
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/generator" element={<Generator />} />
+            <Route path="/pricing" element={<Pricing />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/help" element={<Help />} />
+            <Route path="/resources" element={<Resources />} />
+            <Route path="/updates" element={<Updates />} />
+            <Route path="/tutorials/:slug" element={<Tutorial />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="/ai-prompt-generator" element={<AIPromptGenerator />} />
+            <Route path="/payment-success" element={<PaymentSuccess />} />
+            <Route path="/tools/fantasy-name-generator" element={<FantasyNameGenerator />} />
+            <Route path="/tools/story-starter" element={<MicroNovelStarterPage />} />
+            <Route path="/auth/callback" element={<OAuthCallback />} />
+          </Routes>
+        </main>
+        <Footer />
+        <NotificationSystem />
+        <ToastContainer />
+        <PointsNotification />
+      </div>
+    </PointsProvider>
   );
 }
 

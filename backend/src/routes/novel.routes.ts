@@ -1024,6 +1024,24 @@ router.post('/analysis', authMiddleware, async (req: AuthRequest, res) => {
     }
     console.log('[Analysis] Processing with details:', { pacingDetail, toneDetail, charactersDetail });
 
+    // Get user ID from request
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
+
+    // Map to billing action for analysis (using DEEP_THINKING which is 50 points)
+    const action: ActionType = 'DEEP_THINKING';
+    
+    // Step 1: Check and deduct points
+    const billingResult = await checkAndDeductPoints(userId, action);
+    if (!billingResult.permitted) {
+      return res.status(402).json({ 
+        error: 'Insufficient points for this operation',
+        remainingPoints: billingResult.remainingPoints
+      });
+    }
+
     const prompt = `You are a literary analyst. Based on the following metrics and sample text, write a concise, literary summary (1-2 sentences) that feels natural and insightful. Then provide the technical detail in a separate field.
 
 Metrics:
@@ -1044,6 +1062,8 @@ Return a JSON object with:
     if (!isValidApiKey) {
       console.log('[Analysis] API Key not configured, using fallback analysis');
       // Fallback to local analysis if API key not configured
+      // Refund points since we're not using AI
+      await refundPoints(userId, billingResult.pointsDeducted);
       return res.json({
         pacing: { summary: pacing?.summary || 'Pacing analysis', detail: pacingDetail },
         tone: { summary: tone?.summary || 'Tone analysis', detail: toneDetail },
@@ -1052,15 +1072,23 @@ Return a JSON object with:
     }
 
     console.log('[Analysis] Calling LLM');
-    const completion = await openai.chat.completions.create({
-      model: 'deepseek-chat',
-      messages: [
-        { role: 'system' as const, content: 'You are a literary analyst. Return only valid JSON, no markdown formatting.' },
-        { role: 'user' as const, content: prompt }
-      ],
-      max_tokens: 500,
-      temperature: 0.7
-    });
+    let completion;
+    try {
+      completion = await openai.chat.completions.create({
+        model: 'deepseek-chat',
+        messages: [
+          { role: 'system' as const, content: 'You are a literary analyst. Return only valid JSON, no markdown formatting.' },
+          { role: 'user' as const, content: prompt }
+        ],
+        max_tokens: 500,
+        temperature: 0.7
+      });
+    } catch (error: any) {
+      console.error('[Analysis] Error calling LLM:', error);
+      // Refund points if API call failed
+      await refundPoints(userId, billingResult.pointsDeducted);
+      throw error;
+    }
 
     const content = completion.choices[0].message.content || '';
     let analysis;
@@ -1077,7 +1105,10 @@ Return a JSON object with:
       };
     }
 
-    res.json(analysis);
+    res.json({
+      ...analysis,
+      remainingPoints: billingResult.remainingPoints
+    });
   } catch (error: any) {
     console.error('[Analysis] Error details:', {
       message: error.message,
@@ -1112,8 +1143,18 @@ router.post('/assist', authMiddleware, aiGenerationRateLimit, async (req: AuthRe
       return res.status(401).json({ error: 'User not authenticated' });
     }
 
-    // Map to billing action for AI assistant
-    const billingAction: ActionType = 'AI_CHAT';
+    // Map to billing action for AI assistant based on the requested action
+    const actionToBillingAction: Record<string, ActionType> = {
+      rewrite: 'AI_REWRITE',
+      tone: 'AI_TONE',
+      suggest: 'AI_SUGGEST',
+      detect: 'AI_DETECT',
+      storyTree: 'AI_STORY_TREE',
+      sceneBeats: 'AI_SCENE_BEATS',
+      characterArc: 'AI_CHARACTER_ARC'
+    };
+    
+    const billingAction: ActionType = actionToBillingAction[action] || 'AI_REWRITE';
     
     // Step 1: Check and deduct points
     const billingResult = await checkAndDeductPoints(userId, billingAction);

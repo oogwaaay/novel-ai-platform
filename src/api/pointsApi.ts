@@ -20,6 +20,7 @@ export interface UserWallet {
   id: string;
   user_id: string;
   balance: number;
+  available_balance: number;
   total_earned: number;
   updated_at: string;
 }
@@ -45,8 +46,10 @@ export interface PointsTransaction {
   wallet_id: string;
   amount: number;
   type: string;
+  source: string;
   description: string;
   created_at: string;
+  expires_at: string | null;
 }
 
 // Get user points transactions with pagination

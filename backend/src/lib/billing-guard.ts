@@ -115,11 +115,11 @@ export const checkAndDeductPoints = async (userId: string, action: ActionType): 
       return { permitted: false, pointsDeducted: 0, remainingPoints: currentBalance };
     }
 
-    // Deduct points using the existing RPC function
-    const { error: transactionError } = await supabaseAdmin
-      .rpc('add_user_points', {
+    // Deduct points using the deduct_user_points function that considers expired points and FIFO
+    const { data: newBalance, error: transactionError } = await supabaseAdmin
+      .rpc('deduct_user_points', {
         p_user_id: userId,
-        p_amount: -pointsRequired, // Negative amount for deduction
+        p_amount: pointsRequired,
         p_type: action,
         p_description: `AI generation: ${actionConfig.label}`
       });
@@ -133,9 +133,7 @@ export const checkAndDeductPoints = async (userId: string, action: ActionType): 
       return { permitted: false, pointsDeducted: 0, remainingPoints: currentBalance };
     }
 
-    // Calculate new balance
-    const newBalance = currentBalance - pointsRequired;
-    
+    // newBalance is returned from deduct_user_points function
     logBillingEvent('POINTS_DEDUCTED', userId, {
       action,
       deducted: pointsRequired,

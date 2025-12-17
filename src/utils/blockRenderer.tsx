@@ -33,9 +33,9 @@ function renderHero(block: BlockSchema) {
 
   return (
     <div className="space-y-6 text-center">
-      <p className="text-xs font-semibold tracking-[0.3em] uppercase text-slate-500">{emphasis}</p>
-      <h1 className="text-4xl md:text-5xl font-light text-slate-900 tracking-tight">{title}</h1>
-      <p className="text-slate-600 max-w-2xl mx-auto text-base">{description}</p>
+      <p className="text-xs font-semibold tracking-[0.3em] uppercase text-slate-500 dark:text-slate-400">{emphasis}</p>
+      <h1 className="text-4xl md:text-5xl font-light text-slate-900 dark:text-white tracking-tight">{title}</h1>
+      <p className="text-slate-600 dark:text-slate-300 max-w-2xl mx-auto text-base">{description}</p>
       {actions && (
         <div className="flex justify-center gap-2 flex-wrap">
           {actions.map((action) => {
@@ -49,11 +49,7 @@ function renderHero(block: BlockSchema) {
                   key={action.label}
                   href={action.to}
                   onClick={(e) => handleAnchorClick(e, action.to)}
-                  className={`rounded-xl px-4 py-3 text-sm font-semibold transition ${
-                    isActive
-                      ? 'bg-slate-900 text-white'
-                      : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
-                  }`}
+                  className={`rounded-xl px-4 py-3 text-sm font-semibold transition ${isActive ? 'bg-slate-900 dark:bg-indigo-600 text-white' : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'}`}
                 >
                   {action.label}
                 </a>
@@ -87,14 +83,14 @@ function renderFeatureGrid(block: BlockSchema) {
     <div className="space-y-8">
       {title && (
         <div className="text-center mb-6">
-          <h2 className="text-3xl font-light text-slate-900 tracking-tight">{title}</h2>
+          <h2 className="text-3xl font-light text-slate-900 dark:text-white tracking-tight">{title}</h2>
         </div>
       )}
       <div className="grid md:grid-cols-3 gap-8">
         {items.map((item) => (
           <GlassCard key={item.title} className="p-8 hover:-translate-y-0.5 transition-all">
-            <h3 className="text-xl font-light text-slate-900 mb-3">{item.title}</h3>
-            <p className="text-slate-600 text-sm leading-relaxed">{item.description}</p>
+            <h3 className="text-xl font-light text-slate-900 dark:text-white mb-3">{item.title}</h3>
+            <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed">{item.description}</p>
           </GlassCard>
         ))}
       </div>
@@ -111,8 +107,8 @@ function renderCtaCard(block: BlockSchema) {
   };
   return (
     <GlassCard className="p-12 text-center space-y-8">
-      <h2 className="text-3xl font-light text-slate-900 mb-4 tracking-tight">{title}</h2>
-      <p className="text-slate-600 mb-8 max-w-2xl mx-auto text-base">{description}</p>
+      <h2 className="text-3xl font-light text-slate-900 dark:text-white mb-4 tracking-tight">{title}</h2>
+      <p className="text-slate-600 dark:text-slate-300 mb-8 max-w-2xl mx-auto text-base">{description}</p>
       <div className="flex flex-col sm:flex-row gap-4 justify-center">
         <PrimaryButton asChild className="w-full sm:w-auto">
           <Link to={primary.to}>{primary.label}</Link>
@@ -128,29 +124,42 @@ function renderCtaCard(block: BlockSchema) {
 }
 
 function renderTextSection(block: BlockSchema) {
-  const { title, paragraphs } = block.props as {
+  const { title, description, paragraphs, content } = block.props as {
     title: string;
-    paragraphs: string[];
+    description?: string;
+    paragraphs?: string[];
+    content?: string;
   };
   return (
-    <GlassCard className="p-10 space-y-6">
-      <h2 className="text-3xl font-semibold text-slate-900">{title}</h2>
-      {paragraphs.map((text, idx) => (
-        <p key={idx} className="text-slate-600 leading-relaxed" dangerouslySetInnerHTML={{ __html: text }} />
-      ))}
-    </GlassCard>
+    <div className="text-center space-y-6">
+      <h2 className="text-3xl font-semibold text-slate-900 dark:text-white">{title}</h2>
+      {description && (
+        <p className="text-slate-600 dark:text-slate-300 max-w-2xl mx-auto text-base">{description}</p>
+      )}
+      {content && (
+        <div className="mt-8" dangerouslySetInnerHTML={{ __html: content }} />
+      )}
+      {paragraphs && paragraphs.length > 0 && (
+        <div className="space-y-4 mt-8 max-w-2xl mx-auto">
+          {paragraphs.map((text, idx) => (
+            <p key={idx} className="text-slate-600 dark:text-slate-300 leading-relaxed" dangerouslySetInnerHTML={{ __html: text }} />
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 
 function renderPricingToggle(block: BlockSchema) {
-  const { billingCycle, onToggle, saveLabel } = block.props as {
+  const { billingCycle, onToggle, saveLabel, tooltip } = block.props as {
     billingCycle: 'monthly' | 'yearly';
     onToggle: () => void;
     saveLabel?: string;
+    tooltip?: string;
   };
 
   return (
-    <div className="flex items-center justify-center gap-4 py-4 bg-white dark:bg-slate-800/95 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm">
+    <div className="flex items-center justify-center gap-4 py-4 bg-white dark:bg-slate-800/95 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm relative">
       <span className={`text-sm font-medium ${billingCycle === 'monthly' ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-300'}`}>
         Monthly
       </span>
@@ -173,6 +182,12 @@ function renderPricingToggle(block: BlockSchema) {
           </span>
         )}
       </div>
+      {tooltip && (
+        <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 bg-slate-900 text-white text-xs font-medium px-4 py-2 rounded-lg shadow-lg z-50 whitespace-nowrap">
+          {tooltip}
+          <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-l-transparent border-r-4 border-r-transparent border-b-4 border-b-slate-900"></div>
+        </div>
+      )}
     </div>
   );
 }
@@ -204,6 +219,7 @@ function renderPlanGrid(block: BlockSchema) {
         return (
           <div
             key={plan.tier}
+            id={plan.tier}
             className={`p-6 rounded-2xl transition-all ${plan.popular ? 'ring-2 ring-slate-900 dark:ring-slate-700 shadow-xl bg-white dark:bg-slate-800' : 'bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700'}`}
           >
             <div className="flex items-center justify-between mb-4">
@@ -263,25 +279,25 @@ function renderComparisonTable(block: BlockSchema) {
 
   return (
     <GlassCard className="p-8" id="features">
-      <h2 className="text-2xl font-light text-slate-900 tracking-tight mb-6">Compare Plans</h2>
+      <h2 className="text-2xl font-light text-slate-900 dark:text-white tracking-tight mb-6">Compare Plans</h2>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-slate-200">
-              <th className="text-left py-3 px-4 font-medium text-slate-900">Feature</th>
+            <tr className="border-b border-slate-200 dark:border-slate-700">
+              <th className="text-left py-3 px-4 font-medium text-slate-900 dark:text-white">Feature</th>
               {columns.map((col) => (
-                <th key={col} className="text-center py-3 px-4 font-medium text-slate-900">
+                <th key={col} className="text-center py-3 px-4 font-medium text-slate-900 dark:text-white">
                   {col}
                 </th>
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
             {rows.map((row) => (
               <tr key={row.label}>
-                <td className="py-3 px-4 text-slate-700">{row.label}</td>
+                <td className="py-3 px-4 text-slate-700 dark:text-slate-200">{row.label}</td>
                 {row.values.map((value, idx) => (
-                  <td key={`${row.label}-${idx}`} className="py-3 px-4 text-center text-slate-600">
+                  <td key={`${row.label}-${idx}`} className="py-3 px-4 text-center text-slate-600 dark:text-slate-300">
                     {value}
                   </td>
                 ))}
@@ -1184,8 +1200,8 @@ function renderTestimonial(block: BlockSchema) {
     <div className="space-y-8">
       {title && (
         <div className="text-center mb-8">
-          <h2 className="text-3xl font-light text-slate-900 tracking-tight">{title}</h2>
-          <p className="text-slate-600 mt-2 text-sm">See what writers are saying about Scribely</p>
+          <h2 className="text-3xl font-light text-slate-900 dark:text-white tracking-tight">{title}</h2>
+          <p className="text-slate-600 dark:text-slate-300 mt-2 text-sm">See what writers are saying about Scribely</p>
         </div>
       )}
       
@@ -1209,18 +1225,18 @@ function renderTestimonial(block: BlockSchema) {
                 )}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <p className="font-semibold text-slate-900 text-sm">{testimonial.name}</p>
+                    <p className="font-semibold text-slate-900 dark:text-white text-sm">{testimonial.name}</p>
                     {testimonial.verified && (
-                      <svg className="w-4 h-4 text-indigo-500" fill="currentColor" viewBox="0 0 20 20">
+                      <svg className="w-4 h-4 text-indigo-500 dark:text-indigo-400" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                       </svg>
                     )}
                   </div>
                   {testimonial.role && (
-                    <p className="text-xs text-slate-500">{testimonial.role}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">{testimonial.role}</p>
                   )}
                   {testimonial.tier && (
-                    <span className="inline-block mt-1 text-xs font-semibold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded">
+                    <span className="inline-block mt-1 text-xs font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 px-2 py-0.5 rounded">
                       {testimonial.tier.charAt(0).toUpperCase() + testimonial.tier.slice(1)} User
                     </span>
                   )}
@@ -1230,7 +1246,7 @@ function renderTestimonial(block: BlockSchema) {
                         <svg
                           key={i}
                           className={`w-4 h-4 ${
-                            i < testimonial.rating! ? 'text-yellow-400' : 'text-slate-300'
+                            i < testimonial.rating! ? 'text-yellow-400' : 'text-slate-300 dark:text-slate-600'
                           }`}
                           fill="currentColor"
                           viewBox="0 0 20 20"
@@ -1240,7 +1256,7 @@ function renderTestimonial(block: BlockSchema) {
                       ))}
                     </div>
                   )}
-                  <p className="text-slate-700 text-sm leading-relaxed italic mt-3">
+                  <p className="text-slate-700 dark:text-slate-300 text-sm leading-relaxed italic mt-3">
                     "{testimonial.content}"
                   </p>
                 </div>
@@ -1266,18 +1282,18 @@ function renderTestimonial(block: BlockSchema) {
                 )}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <p className="font-semibold text-slate-900 text-sm">{testimonial.name}</p>
+                    <p className="font-semibold text-slate-900 dark:text-white text-sm">{testimonial.name}</p>
                     {testimonial.verified && (
-                      <svg className="w-4 h-4 text-indigo-500" fill="currentColor" viewBox="0 0 20 20">
+                      <svg className="w-4 h-4 text-indigo-500 dark:text-indigo-400" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                       </svg>
                     )}
                   </div>
                   {testimonial.role && (
-                    <p className="text-xs text-slate-500">{testimonial.role}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">{testimonial.role}</p>
                   )}
                   {testimonial.tier && (
-                    <span className="inline-block mt-1 text-xs font-semibold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded">
+                    <span className="inline-block mt-1 text-xs font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 px-2 py-0.5 rounded">
                       {testimonial.tier.charAt(0).toUpperCase() + testimonial.tier.slice(1)} User
                     </span>
                   )}
@@ -1290,7 +1306,7 @@ function renderTestimonial(block: BlockSchema) {
                     <svg
                       key={i}
                       className={`w-4 h-4 ${
-                        i < testimonial.rating! ? 'text-yellow-400' : 'text-slate-300'
+                        i < testimonial.rating! ? 'text-yellow-400' : 'text-slate-300 dark:text-slate-600'
                       }`}
                       fill="currentColor"
                       viewBox="0 0 20 20"
@@ -1301,7 +1317,7 @@ function renderTestimonial(block: BlockSchema) {
                 </div>
               )}
               
-              <p className="text-slate-700 text-sm leading-relaxed italic">
+              <p className="text-slate-700 dark:text-slate-300 text-sm leading-relaxed italic">
                 "{testimonial.content}"
               </p>
             </GlassCard>

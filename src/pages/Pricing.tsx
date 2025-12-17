@@ -119,7 +119,8 @@ export default function Pricing() {
     props: {
       billingCycle,
       onToggle: () => setBillingCycle(billingCycle === 'monthly' ? 'yearly' : 'monthly'),
-      saveLabel: 'Save up to 25%'
+      saveLabel: 'Save up to 25%',
+      tooltip: 'Yearly plans get 20% more credits!'
     }
   };
 
@@ -134,6 +135,49 @@ export default function Pricing() {
     }
   };
 
+  const creditsInfoBlock: BlockSchema = {
+    id: 'credits-info',
+    type: 'text-section',
+    className: 'max-w-6xl mx-auto px-4 py-16 bg-gradient-to-b from-indigo-50 to-purple-50 dark:bg-slate-800 dark:bg-gradient-to-b dark:from-slate-800 dark:to-slate-900 rounded-2xl mt-8',
+    props: {
+      title: 'What are Points used for?',
+      description: 'Points are your currency for AI-powered features beyond basic writing.',
+      content: `
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-8">
+          <div className="bg-white dark:bg-slate-700 dark:border dark:border-slate-600 rounded-xl shadow-md p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <span className="text-2xl">📝</span>
+              <h3 className="text-xl font-semibold text-slate-900 dark:text-white">AI Writing</h3>
+            </div>
+            <p className="text-sm text-slate-600 dark:text-slate-300 mb-3">Standard Mode</p>
+            <p className="text-lg font-bold text-indigo-600 dark:text-indigo-400">10 Points / Chapter</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-4">Starter Plan ≈ 500 Chapters</p>
+          </div>
+          
+          <div className="bg-white dark:bg-slate-700 dark:border dark:border-slate-600 rounded-xl shadow-md p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <span className="text-2xl">🧠</span>
+              <h3 className="text-xl font-semibold text-slate-900 dark:text-white">Deep Thinking (R1)</h3>
+            </div>
+            <p className="text-sm text-slate-600 dark:text-slate-300 mb-3">DeepSeek-R1</p>
+            <p className="text-lg font-bold text-indigo-600 dark:text-indigo-400">50 Points / Chapter</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-4">Starter Plan ≈ 100 Deep Thoughts</p>
+          </div>
+          
+          <div className="bg-white dark:bg-slate-700 dark:border dark:border-slate-600 rounded-xl shadow-md p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <span className="text-2xl">🎨</span>
+              <h3 className="text-xl font-semibold text-slate-900 dark:text-white">AI Art (Coming Soon)</h3>
+            </div>
+            <p className="text-sm text-slate-600 dark:text-slate-300 mb-3">Character Avatar</p>
+            <p className="text-lg font-bold text-indigo-600 dark:text-indigo-400">50 Points / Image</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-4">Starter Plan ≈ 100 Images</p>
+          </div>
+        </div>
+      `
+    }
+  };
+
   const comparisonColumns = ['Free', 'Starter', 'Pro', 'Unlimited'];
   const comparisonRows = [
     {
@@ -143,6 +187,18 @@ export default function Pricing() {
     {
       label: 'Max novel length',
       values: ['30 pages', '100 pages', <span className="text-slate-900 font-medium">300 pages</span>, 'Unlimited']
+    },
+    {
+      label: 'Monthly Points',
+      values: ['500', '5,000', '2,000', '10,000']
+    },
+    {
+      label: 'Unlimited Text Generation',
+      values: ['—', '—', '✓', '✓']
+    },
+    {
+      label: 'Points Rollover',
+      values: ['—', '—', '—', '✓']
     },
     {
       label: 'Style Memory',
@@ -305,6 +361,7 @@ export default function Pricing() {
     heroBlock,
     toggleBlock,
     planGridBlock,
+    creditsInfoBlock,
     comparisonBlock,
     ...supportingBlocks
   ];

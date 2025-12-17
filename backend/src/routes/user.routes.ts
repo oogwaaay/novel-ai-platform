@@ -84,7 +84,7 @@ router.get('/usage', authMiddleware, async (req: AuthRequest, res) => {
   }
 });
 
-// Get user wallet balance
+// Get user wallet balance (including available balance considering expired points)
 router.get('/wallet', authMiddleware, async (req: AuthRequest, res) => {
   try {
     const userId = req.user?.id;
@@ -101,21 +101,33 @@ router.get('/wallet', authMiddleware, async (req: AuthRequest, res) => {
     console.log(`[Wallet API] Fetching balance for user: ${userId}`);
 
     // Query user wallet from Supabase
-    const { data, error } = await supabaseAdmin
+    const { data: walletData, error: walletError } = await supabaseAdmin
       .from('user_wallets')
       .select('id, user_id, balance, total_earned, updated_at')
       .eq('user_id', userId)
       .single();
 
-    if (error) {
-      console.error(`[Wallet API] Error fetching balance for user ${userId}:`, error);
+    if (walletError) {
+      console.error(`[Wallet API] Error fetching wallet for user ${userId}:`, walletError);
       return res.status(500).json({ message: 'Failed to fetch wallet balance' });
     }
 
-    console.log(`[Wallet API] Balance fetched for user ${userId}: ${data.balance}`);
+    // Calculate available balance (considering expired points)
+    const { data: availableBalanceData, error: availableBalanceError } = await supabaseAdmin
+      .rpc('calculate_available_balance', { p_user_id: userId });
 
-    // Return wallet data
-    res.json(data);
+    if (availableBalanceError) {
+      console.error(`[Wallet API] Error calculating available balance for user ${userId}:`, availableBalanceError);
+      return res.status(500).json({ message: 'Failed to calculate available balance' });
+    }
+
+    console.log(`[Wallet API] Balance fetched for user ${userId}: ${walletData.balance}, available: ${availableBalanceData}`);
+
+    // Return wallet data with available balance
+    res.json({
+      ...walletData,
+      available_balance: availableBalanceData
+    });
   } catch (error: any) {
     console.error(`[Wallet API] Unexpected error for user ${req.user?.id}:`, error);
     res.status(500).json({ message: 'Internal server error' });
@@ -158,7 +170,7 @@ router.get('/wallet/transactions', authMiddleware, async (req: AuthRequest, res)
     // Then get transactions
     const { data: transactions, error: transactionsError } = await supabaseAdmin
       .from('point_transactions')
-      .select('id, wallet_id, amount, type, description, created_at')
+      .select('id, wallet_id, amount, type, source, description, created_at, expires_at, ip_address')
       .eq('wallet_id', walletId)
       .order('created_at', { ascending: false })
       .limit(limit)
@@ -186,7 +198,7 @@ router.get('/wallet/transactions', authMiddleware, async (req: AuthRequest, res)
   }
 });
 
-// Deduct points from user wallet
+// Deduct points from user wallet (uses updated function that considers expired points)
 router.post('/wallet/deduct', authMiddleware, async (req: AuthRequest, res) => {
   try {
     const userId = req.user?.id;
@@ -212,61 +224,88 @@ router.post('/wallet/deduct', authMiddleware, async (req: AuthRequest, res) => {
 
     console.log(`[Wallet API] Deducting ${amount} points from user: ${userId}, type: ${type}`);
 
-    // First get wallet id and current balance
-    const { data: walletData, error: walletError } = await supabaseAdmin
-      .from('user_wallets')
-      .select('id, balance')
-      .eq('user_id', userId)
-      .single();
-
-    if (walletError) {
-      console.error(`[Wallet API] Error fetching wallet for user ${userId}:`, walletError);
-      return res.status(500).json({ message: 'Failed to fetch wallet' });
-    }
-
-    const walletId = walletData.id;
-    const currentBalance = walletData.balance;
-
-    // Check if user has enough balance
-    if (currentBalance < amount) {
-      console.error(`[Wallet API] Insufficient balance for user ${userId}: current ${currentBalance}, requested ${amount}`);
-      return res.status(400).json({ message: 'Insufficient balance' });
-    }
-
-    // Calculate new balance
-    const newBalance = currentBalance - amount;
-
-    // Use transaction to ensure atomic operations
-    const { error: transactionError } = await supabaseAdmin
-      .rpc('add_user_points', {
+    // Use updated deduct_user_points function that considers expired points
+    const { data: newBalance, error: transactionError } = await supabaseAdmin
+      .rpc('deduct_user_points', {
         p_user_id: userId,
-        p_amount: -amount, // Negative amount for deduction
+        p_amount: amount, // Positive amount for deduction
         p_type: type,
         p_description: description || `Manual deduction of ${amount} points`
       });
 
     if (transactionError) {
       console.error(`[Wallet API] Error deducting points for user ${userId}:`, transactionError);
+      // Handle specific error cases
+      if (transactionError.message === 'INSUFFICIENT_FUNDS') {
+        return res.status(400).json({ message: 'Insufficient balance' });
+      }
       return res.status(500).json({ message: 'Failed to deduct points' });
     }
 
-    console.log(`[Wallet API] Successfully deducted ${amount} points from user ${userId}. New balance: ${newBalance}`);
+    console.log(`[Wallet API] Successfully deducted ${amount} points from user ${userId}. New available balance: ${newBalance}`);
 
-    // Return updated wallet data
+    // Return updated wallet data with available balance
     const { data: updatedWallet } = await supabaseAdmin
       .from('user_wallets')
       .select('id, user_id, balance, total_earned, updated_at')
-      .eq('id', walletId)
+      .eq('user_id', userId)
       .single();
 
     res.json({
       success: true,
       amount_deducted: amount,
-      new_balance: newBalance,
-      wallet: updatedWallet
+      new_available_balance: newBalance,
+      wallet: {
+        ...updatedWallet,
+        available_balance: newBalance
+      }
     });
   } catch (error: any) {
     console.error(`[Wallet API] Unexpected error in deduct endpoint for user ${req.user?.id}:`, error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+// Get daily point limits for user
+router.get('/wallet/daily-limits', authMiddleware, async (req: AuthRequest, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    // Check if supabaseAdmin is initialized
+    if (!supabaseAdmin) {
+      console.error('Supabase client not initialized');
+      return res.status(500).json({ message: 'Database client not available' });
+    }
+
+    console.log(`[Wallet API] Fetching daily limits for user: ${userId}`);
+
+    // Get today's date in ISO format
+    const today = new Date().toISOString().split('T')[0];
+
+    // Query daily limits for today
+    const { data: limits, error: limitsError } = await supabaseAdmin
+      .from('daily_point_limits')
+      .select('id, user_id, transaction_type, date, amount_earned, max_amount')
+      .eq('user_id', userId)
+      .eq('date', today);
+
+    if (limitsError) {
+      console.error(`[Wallet API] Error fetching daily limits for user ${userId}:`, limitsError);
+      return res.status(500).json({ message: 'Failed to fetch daily limits' });
+    }
+
+    console.log(`[Wallet API] Daily limits fetched for user ${userId}: ${limits.length} records`);
+
+    // Return daily limits data
+    res.json({
+      limits,
+      date: today
+    });
+  } catch (error: any) {
+    console.error(`[Wallet API] Unexpected error in daily-limits endpoint for user ${req.user?.id}:`, error);
     res.status(500).json({ message: 'Internal server error' });
   }
 });

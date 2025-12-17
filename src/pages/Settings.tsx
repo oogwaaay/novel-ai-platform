@@ -82,17 +82,17 @@ export default function Settings() {
         keywords="account settings, profile, scribely"
         image="https://scribelydesigns.top/brand1090.png"
       />
-      <h1 className="text-3xl font-bold text-slate-900 mb-8">Account Settings</h1>
+      <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-8">Account Settings</h1>
 
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-        <h2 className="text-xl font-semibold text-slate-900 mb-6">Profile Information</h2>
+      <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
+        <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-6">Profile Information</h2>
 
         {message && (
           <div
             className={`mb-4 p-3 rounded-lg ${
               message.type === 'success'
-                ? 'bg-green-50 text-green-800 border border-green-200'
-                : 'bg-rose-50 text-rose-800 border border-rose-200'
+                ? 'bg-green-50 dark:bg-green-900/30 text-green-800 dark:text-green-400 border border-green-200 dark:border-green-800'
+                : 'bg-rose-50 dark:bg-rose-900/30 text-rose-800 dark:text-rose-400 border border-rose-200 dark:border-rose-800'
             }`}
           >
             {message.text}
@@ -101,7 +101,7 @@ export default function Settings() {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label htmlFor="name" className="block text-sm font-medium text-slate-700 mb-2">
+            <label htmlFor="name" className="block text-sm font-medium text-slate-700 dark:text-white mb-2">
               Name
             </label>
             <input
@@ -109,13 +109,13 @@ export default function Settings() {
               id="name"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full px-4 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent"
+              className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent dark:focus:ring-slate-500"
               placeholder="Your name"
             />
           </div>
 
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-2">
+            <label htmlFor="email" className="block text-sm font-medium text-slate-700 dark:text-white mb-2">
               Email
             </label>
             <input
@@ -123,13 +123,13 @@ export default function Settings() {
               id="email"
               value={formData.email}
               disabled
-              className="w-full px-4 py-2 border border-slate-300 rounded-xl bg-slate-50 text-slate-500 cursor-not-allowed"
+              className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-400 cursor-not-allowed rounded-xl bg-slate-50"
             />
-            <p className="mt-1 text-xs text-slate-500">Email cannot be changed</p>
+            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Email cannot be changed</p>
           </div>
 
           <div>
-            <label htmlFor="avatar" className="block text-sm font-medium text-slate-700 mb-2">
+            <label htmlFor="avatar" className="block text-sm font-medium text-slate-700 dark:text-white mb-2">
               Avatar URL
             </label>
             <input
@@ -137,16 +137,16 @@ export default function Settings() {
               id="avatar"
               value={formData.avatar}
               onChange={(e) => setFormData({ ...formData, avatar: e.target.value })}
-              className="w-full px-4 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent"
+              className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent dark:focus:ring-slate-500"
               placeholder="https://example.com/avatar.jpg"
             />
-            <p className="mt-1 text-xs text-slate-500">Enter a URL to your avatar image</p>
+            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Enter a URL to your avatar image</p>
             {formData.avatar && (
               <div className="mt-3">
                 <img
                   src={formData.avatar}
                   alt="Avatar preview"
-                  className="w-16 h-16 rounded-full border border-slate-200"
+                  className="w-16 h-16 rounded-full border border-slate-200 dark:border-slate-600"
                   onError={(e) => {
                     (e.target as HTMLImageElement).style.display = 'none';
                   }}
@@ -159,7 +159,7 @@ export default function Settings() {
             <button
               type="submit"
               disabled={isLoading}
-              className="px-6 py-2.5 bg-slate-900 text-white rounded-xl font-medium hover:bg-slate-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-6 py-2.5 bg-slate-900 dark:bg-slate-700 text-white rounded-xl font-medium hover:bg-slate-800 dark:hover:bg-slate-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? 'Saving...' : 'Save Changes'}
             </button>
@@ -169,7 +169,7 @@ export default function Settings() {
                 // Cancel: leave settings page and go back to dashboard
                 navigate('/dashboard');
               }}
-              className="px-6 py-2.5 border border-slate-300 text-slate-700 rounded-xl font-medium hover:bg-slate-50 transition"
+              className="px-6 py-2.5 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-white rounded-xl font-medium hover:bg-slate-50 dark:hover:bg-slate-700 transition"
             >
               Cancel
             </button>
@@ -177,24 +177,24 @@ export default function Settings() {
         </form>
       </div>
 
-      <div className="mt-8 bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-        <h2 className="text-xl font-semibold text-slate-900 mb-4">Account Information</h2>
+      <div className="mt-8 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
+        <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-4">Account Information</h2>
         <div className="space-y-3 text-sm">
           <div className="flex justify-between">
-            <span className="text-slate-600">Account Created</span>
-            <span className="text-slate-900 font-medium">
+            <span className="text-slate-600 dark:text-slate-400">Account Created</span>
+            <span className="text-slate-900 dark:text-white font-medium">
               {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}
             </span>
           </div>
           <div className="flex justify-between">
-            <span className="text-slate-600">Last Login</span>
-            <span className="text-slate-900 font-medium">
+            <span className="text-slate-600 dark:text-slate-400">Last Login</span>
+            <span className="text-slate-900 dark:text-white font-medium">
               {user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleDateString() : 'N/A'}
             </span>
           </div>
           <div className="flex justify-between">
-            <span className="text-slate-600">Subscription</span>
-            <span className="text-slate-900 font-medium capitalize">
+            <span className="text-slate-600 dark:text-slate-400">Subscription</span>
+            <span className="text-slate-900 dark:text-white font-medium capitalize">
               {user.subscription?.tier || 'Free'}
             </span>
           </div>

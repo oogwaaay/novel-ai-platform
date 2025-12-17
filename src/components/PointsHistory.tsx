@@ -92,40 +92,40 @@ const PointsHistory: React.FC = () => {
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-sm overflow-hidden border border-slate-200">
-      <div className="px-6 py-4 border-b border-slate-200 bg-slate-50">
-        <h2 className="text-lg font-semibold text-slate-800">Transaction History</h2>
+    <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm overflow-hidden border border-slate-200 dark:border-slate-700">
+      <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-700">
+        <h2 className="text-lg font-semibold text-slate-800 dark:text-white">Transaction History</h2>
       </div>
       
       {transactions.length === 0 ? (
         // Empty state
-        <div className="px-6 py-16 text-center text-slate-500">
+        <div className="px-6 py-16 text-center text-slate-500 dark:text-slate-400">
           <p>No transaction history yet.</p>
         </div>
       ) : (
         // Transactions table
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-slate-50">
+            <thead className="bg-slate-50 dark:bg-slate-700">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">
                   Time
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">
                   Action
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-right text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">
                   Change
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-slate-200">
+            <tbody className="bg-white dark:bg-slate-800 divide-y divide-slate-200 dark:divide-slate-700">
               {transactions.map((transaction) => (
-                <tr key={transaction.id} className="hover:bg-slate-50 transition-colors">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
+                <tr key={transaction.id} className="hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">
                     {formatDate(transaction.created_at)}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-800">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-800 dark:text-white">
                     {getFriendlyTransactionName(transaction.type, transaction.description)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-right">

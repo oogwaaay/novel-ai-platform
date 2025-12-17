@@ -11,6 +11,8 @@ import {
   type SceneBeatSummary,
   type CharacterArcSummary
 } from '../api/novelApi';
+import { usePoints } from '../context/PointsContext';
+import { AI_ACTION_POINT_COSTS } from '../config/billing';
 import {
   createProject,
   updateProject as updateProjectRequest,
@@ -50,6 +52,8 @@ import ContextManagerPanel from '../components/ContextManagerPanel';
 import EmptyProjectGuide from '../components/EmptyProjectGuide';
 import LoginModal from '../components/LoginModal';
 import AIActionMenu from '../components/AIActionMenu';
+import AIFloatingButton from '../components/AIFloatingButton';
+import AIAssistantDrawer from '../components/AIAssistantDrawer';
 import UpgradePrompt from '../components/UpgradePrompt';
 import { fetchUsage } from '../api/authApi';
 import { useCapabilities } from '../hooks/useCapabilities';
@@ -62,6 +66,8 @@ import type { Sources } from 'quill';
 import DiffMatchPatch from 'diff-match-patch';
 import { getKeyValue, setKeyValue } from '../utils/offlineDb';
 import { buildUserHandle, deriveMentionsFromText, normalizeHandle } from '../utils/handle';
+import PointsExhaustedModal from '../components/PointsExhaustedModal';
+import { BILLING_CONFIG } from '../config/billing';
 
 const getCollaborationBaseUrl = () => {
   const explicit = (import.meta.env.VITE_COLLAB_URL as string | undefined)?.trim();
@@ -97,17 +103,16 @@ type SectionLockState = {
 };
 
 const TypingIndicator: React.FC = () => {
-  const frames = ['t', 'th', 'thi', 'thin', 'think', 'thinki', 'thinkin', 'thinking'];
-  const [index, setIndex] = useState(0);
-
-  useEffect(() => {
-    const timer = window.setInterval(() => {
-      setIndex((prev) => (prev + 1) % frames.length);
-    }, 140);
-    return () => window.clearInterval(timer);
-  }, []);
-
-  return <span>{frames[index]}</span>;
+  return (
+    <div className="flex items-center gap-2">
+      <div className="flex gap-1">
+        <div className="w-2 h-2 bg-indigo-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+        <div className="w-2 h-2 bg-indigo-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+        <div className="w-2 h-2 bg-indigo-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+      </div>
+      <span className="text-sm">AI is working...</span>
+    </div>
+  );
 };
 
 const HISTORY_KEY = 'novel-ai-history';
@@ -461,7 +466,14 @@ export default function Generator() {
   const [showHistory, setShowHistory] = useState(false);
   const [showVersionHistory, setShowVersionHistory] = useState(false);
   const [showOutlineMap, setShowOutlineMap] = useState(false);
-const [outlineMapData, setOutlineMapData] = useState<OutlineMapPayload | null>(null);
+  // Points exhausted modal state
+  const [showPointsExhaustedModal, setShowPointsExhaustedModal] = useState(false);
+  const [remainingPoints, setRemainingPoints] = useState(0);
+  const [requiredPoints, setRequiredPoints] = useState(0);
+  const [exhaustedAction, setExhaustedAction] = useState('');
+  // Available points context
+  const { availableBalance } = usePoints();
+  const [outlineMapData, setOutlineMapData] = useState<OutlineMapPayload | null>(null);
   const [showPlanDrawer, setShowPlanDrawer] = useState(false);
   const [isCollabPanelOpen, setIsCollabPanelOpen] = useState(false);
   // Project creation lock to prevent concurrent creation
@@ -709,6 +721,9 @@ const [outlineMapData, setOutlineMapData] = useState<OutlineMapPayload | null>(n
   const storyEditorRef = useRef<StoryEditorRef>(null);
   const [showAiAvailableHint, setShowAiAvailableHint] = useState(false);
   const [contextStrategy, setContextStrategy] = useState<'precision' | 'balanced' | 'extended'>('balanced');
+  // AI Assistant state
+  const [showAIDrawer, setShowAIDrawer] = useState(false);
+  const [selectedTextForAI, setSelectedTextForAI] = useState('');
 
   useEffect(() => {
     const planLimit = plan?.limits?.contextWindowWords ?? 4000;
@@ -948,9 +963,19 @@ const [outlineMapData, setOutlineMapData] = useState<OutlineMapPayload | null>(n
       
       setIdea(expandedIdea.content || idea);
       showToast('Idea expanded successfully!', 'success');
-    } catch (error) {
+    } catch (error: any) {
       console.error('[Generator] Failed to expand idea:', error);
-      setError('Failed to expand idea. Please try again.');
+      // Handle insufficient points error
+      if (error.response?.status === 402) {
+        const requiredPoints = BILLING_CONFIG.GENERATE_OUTLINE.points;
+        setRemainingPoints(error.response?.data?.remainingPoints || 0);
+        setRequiredPoints(requiredPoints);
+        setExhaustedAction('扩展创意');
+        setShowPointsExhaustedModal(true);
+        setError('积分不足，无法扩展创意。');
+      } else {
+        setError('Failed to expand idea. Please try again.');
+      }
     } finally {
       setIsExpandingIdea(false);
     }
@@ -1002,7 +1027,7 @@ const [outlineMapData, setOutlineMapData] = useState<OutlineMapPayload | null>(n
 
   const handleAiAssistAction = useCallback(
     async (action: AiAction) => {
-      if (!canUseAIAssistant || selectedText.trim().length < MIN_SELECTION_CHARS) return;
+      if (selectedText.trim().length < MIN_SELECTION_CHARS) return;
       const input = selectedText.trim();
       setAiAssistResult({ status: 'loading', action, input });
       try {
@@ -1067,21 +1092,30 @@ const [outlineMapData, setOutlineMapData] = useState<OutlineMapPayload | null>(n
           charactersUsed: canUseCharacters && characters.length > 0 ? characters.length : undefined,
           styleApplied: canUseStyleMemory && writingStyle ? (writingStyle.preset || 'Custom') : undefined
         });
-      } catch (error: unknown) {
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-        setAiAssistResult({
-          status: 'error',
-          action,
-          input,
-          error: errorMessage
-        });
+      } catch (error: any) {
+        console.error('AI Assistant error:', error);
+        // Handle insufficient points error (402 status code)
+        if (error.response?.status === 402) {
+          setShowPointsExhaustedModal(true);
+          setRemainingPoints(error.response.data.remainingPoints || 0);
+          setRequiredPoints(AI_ACTION_POINT_COSTS[action] || 10); // Use the correct points cost for the action
+          setExhaustedAction('ai-assist');
+          setAiAssistResult(null);
+        } else {
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          setAiAssistResult({
+            status: 'error',
+            action,
+            input,
+            error: error.response?.data?.error || errorMessage || 'Failed to get AI assistance. Please try again.'
+          });
+        }
       } finally {
         setAiMenuPosition(null);
         setSelectedText('');
       }
     },
     [
-      canUseAIAssistant,
       selectedText,
       language,
       canUseCharacters,
@@ -1091,7 +1125,11 @@ const [outlineMapData, setOutlineMapData] = useState<OutlineMapPayload | null>(n
       canUseKnowledge,
       pinnedKnowledge,
       contextStrategy,
-      effectiveContextWindow
+      effectiveContextWindow,
+      setShowPointsExhaustedModal,
+      setRemainingPoints,
+      setRequiredPoints,
+      setExhaustedAction
     ]
   );
 
@@ -2824,7 +2862,18 @@ const [outlineMapData, setOutlineMapData] = useState<OutlineMapPayload | null>(n
       );
     } catch (err: any) {
       execution.finishStep(generationStepId, 'error', { error: err?.message || 'Failed to generate draft' });
-      setError(err.message || 'Failed to generate novel');
+      // Handle insufficient points error
+      if (err.response?.status === 402) {
+        // Calculate required points based on action
+        const requiredPoints = idea ? BILLING_CONFIG.GENERATE_CHAPTER.points : BILLING_CONFIG.GENERATE_OUTLINE.points;
+        setRemainingPoints(err.response?.data?.remainingPoints || 0);
+        setRequiredPoints(requiredPoints);
+        setExhaustedAction(idea ? '创建小说' : '生成大纲');
+        setShowPointsExhaustedModal(true);
+        setError('积分不足，无法创建小说。');
+      } else {
+        setError(err.message || 'Failed to generate novel');
+      }
       setProgress('');
       setProgressValue(0);
     } finally {
@@ -2913,7 +2962,17 @@ const [outlineMapData, setOutlineMapData] = useState<OutlineMapPayload | null>(n
       });
     } catch (err: any) {
       execution.finishStep(outlineStepId, 'error', { error: err?.message || 'Failed to generate outline' });
-      setError(err.message || 'Failed to generate outline');
+      // Handle insufficient points error
+      if (err.response?.status === 402) {
+        const requiredPoints = BILLING_CONFIG.GENERATE_OUTLINE.points;
+        setRemainingPoints(err.response?.data?.remainingPoints || 0);
+        setRequiredPoints(requiredPoints);
+        setExhaustedAction('生成大纲');
+        setShowPointsExhaustedModal(true);
+        setError('积分不足，无法生成大纲。');
+      } else {
+        setError(err.message || 'Failed to generate outline');
+      }
       setProgress('');
       setProgressValue(0);
     } finally {
@@ -3022,126 +3081,141 @@ const [outlineMapData, setOutlineMapData] = useState<OutlineMapPayload | null>(n
                 </svg>
                 <span>Context</span>
               </SecondaryButton>
-              {canUseVersionHistory && (
-                <SecondaryButton 
-                  onClick={async () => {
-                    // Check if user is authenticated
-                    if (!isAuthenticated) {
-                      setShowLoginModal(true);
-                      return;
+              <SecondaryButton 
+                onClick={async () => {
+                  // Check if user has permission
+                  if (!canUseVersionHistory) {
+                    // Open plan drawer for upgrade
+                    setShowPlanDrawer(true);
+                    return;
+                  }
+                  
+                  // Check if user is authenticated
+                  if (!isAuthenticated) {
+                    setShowLoginModal(true);
+                    return;
+                  }
+                  
+                  // Ensure project exists
+                  const project = await ensureProject();
+                  if (project) {
+                    setShowVersionHistory(true);
+                  } else {
+                    // No content to create project from
+                    alert('Please add some content before using version history.');
+                  }
+                }}
+              >
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>Project Versions</span>
+              </SecondaryButton>
+              <SecondaryButton 
+                onClick={async () => {
+                  // Check if user has permission
+                  if (!canUseCollaboration) {
+                    // Open plan drawer for upgrade
+                    setShowPlanDrawer(true);
+                    return;
+                  }
+                  
+                  // Check if user is authenticated
+                  if (!isAuthenticated) {
+                    setShowLoginModal(true);
+                    return;
+                  }
+                  
+                  // Ensure project exists before opening collaboration
+                  const project = await ensureProject();
+                  if (project) {
+                    setIsCollabPanelOpen(!isCollabPanelOpen);
+                    // Close ContextDrawer if open (mutual exclusion)
+                    if (showContextDrawer) {
+                      setShowContextDrawer(false);
                     }
-                    
-                    // Ensure project exists
-                    const project = await ensureProject();
-                    if (project) {
-                      setShowVersionHistory(true);
-                    } else {
-                      // No content to create project from
-                      alert('Please add some content before using version history.');
+                  } else {
+                    // No content to create project from, but still allow opening panel
+                    // (will show placeholder)
+                    setIsCollabPanelOpen(!isCollabPanelOpen);
+                    if (showContextDrawer) {
+                      setShowContextDrawer(false);
                     }
-                  }}
-                >
-                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <span>Project Versions</span>
-                </SecondaryButton>
-              )}
-              {canUseCollaboration && (
-                <SecondaryButton 
-                  onClick={async () => {
-                    // Check if user is authenticated
-                    if (!isAuthenticated) {
-                      setShowLoginModal(true);
-                      return;
+                  }
+                }}
+                className={isCollabPanelOpen ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : ''}
+              >
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                </svg>
+                <span>Collaboration</span>
+                {isCollabPanelOpen && <span className="ml-1">▼</span>}
+                {!isCollabPanelOpen && <span className="ml-1">▶</span>}
+              </SecondaryButton>
+              {/* Show AI Assistant button to all users */}
+              <SecondaryButton
+                ref={aiAssistantButtonRef}
+                onClick={(e) => {
+                  // Check if user has permission when clicking, not when rendering
+                  if (!canUseAIAssistant) {
+                    // Open plan drawer for upgrade
+                    setShowPlanDrawer(true);
+                    return;
+                  }
+                  
+                  if (!selectedText || selectedText.length < MIN_SELECTION_CHARS) {
+                    // Show hint to select text first - positioned near the button
+                    const button = e.currentTarget as HTMLButtonElement;
+                    const buttonRect = button.getBoundingClientRect();
+                    const hint = document.createElement('div');
+                    hint.className = 'fixed z-50 bg-slate-900 text-white px-4 py-2 rounded-lg text-sm shadow-xl';
+                    hint.textContent = 'Please select at least 12 characters of text first';
+                    // Position hint above the button, centered horizontally
+                    hint.style.left = `${buttonRect.left + buttonRect.width / 2}px`;
+                    hint.style.top = `${buttonRect.top - 50}px`;
+                    hint.style.transform = 'translateX(-50%)';
+                    document.body.appendChild(hint);
+                    setTimeout(() => {
+                      hint.style.opacity = '0';
+                      hint.style.transition = 'opacity 0.3s';
+                      setTimeout(() => document.body.removeChild(hint), 300);
+                    }, 2000);
+                  } else {
+                    // If text is selected, show the menu at the selection position
+                    const range = storyEditorRef.current?.getSelectedRange();
+                    if (range && aiMenuPosition) {
+                      // Menu should already be visible, but we can ensure it is
+                      setAiMenuPosition(aiMenuPosition);
                     }
-                    
-                    // Ensure project exists before opening collaboration
-                    const project = await ensureProject();
-                    if (project) {
-                      setIsCollabPanelOpen(!isCollabPanelOpen);
-                      // Close ContextDrawer if open (mutual exclusion)
-                      if (showContextDrawer) {
-                        setShowContextDrawer(false);
-                      }
-                    } else {
-                      // No content to create project from, but still allow opening panel
-                      // (will show placeholder)
-                      setIsCollabPanelOpen(!isCollabPanelOpen);
-                      if (showContextDrawer) {
-                        setShowContextDrawer(false);
-                      }
-                    }
-                  }}
-                  className={isCollabPanelOpen ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : ''}
-                >
-                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                  </svg>
-                  <span>Collaboration</span>
-                  {isCollabPanelOpen && <span className="ml-1">▼</span>}
-                  {!isCollabPanelOpen && <span className="ml-1">▶</span>}
-                </SecondaryButton>
-              )}
-              {canUseAIAssistant && (
-                <SecondaryButton
-                  ref={aiAssistantButtonRef}
-                  onClick={(e) => {
-                    if (!selectedText || selectedText.length < MIN_SELECTION_CHARS) {
-                      // Show hint to select text first - positioned near the button
-                      const button = e.currentTarget as HTMLButtonElement;
-                      const buttonRect = button.getBoundingClientRect();
-                      const hint = document.createElement('div');
-                      hint.className = 'fixed z-50 bg-slate-900 text-white px-4 py-2 rounded-lg text-sm shadow-xl';
-                      hint.textContent = 'Please select at least 12 characters of text first';
-                      // Position hint above the button, centered horizontally
-                      hint.style.left = `${buttonRect.left + buttonRect.width / 2}px`;
-                      hint.style.top = `${buttonRect.top - 50}px`;
-                      hint.style.transform = 'translateX(-50%)';
-                      document.body.appendChild(hint);
-                      setTimeout(() => {
-                        hint.style.opacity = '0';
-                        hint.style.transition = 'opacity 0.3s';
-                        setTimeout(() => document.body.removeChild(hint), 300);
-                      }, 2000);
-                    } else {
-                      // If text is selected, show the menu at the selection position
-                      const range = storyEditorRef.current?.getSelectedRange();
-                      if (range && aiMenuPosition) {
-                        // Menu should already be visible, but we can ensure it is
-                        setAiMenuPosition(aiMenuPosition);
-                      }
-                    }
-                  }}
-                >
-                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                  </svg>
-                  <span>AI assistant</span>
-                </SecondaryButton>
-              )}
-              </div>
-                <div className="flex items-center gap-2">
+                  }
+                }}
+              >
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                </svg>
+                <span>AI assistant</span>
+              </SecondaryButton>
               <SecondaryButton onClick={() => setShowHistory(true)} title="Draft History">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
                 <span>Draft History</span>
               </SecondaryButton>
+            </div>
           </div>
-          </GlassCard>
+        </GlassCard>
 
           {/* Focus Mode Editor */}
           <GlassCard className="focus-editor-anchor">
-            <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 px-6 py-5">
+            <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-700 px-6 py-5">
               <div>
-                <p className="text-xs uppercase tracking-[0.3em] text-slate-400">Focus mode</p>
-                <h2 className="text-2xl font-light text-slate-900">
+                <p className="text-xs uppercase tracking-[0.3em] text-slate-400 dark:text-slate-400">Focus mode</p>
+                <h2 className="text-2xl font-light text-slate-900 dark:text-white">
                   {chapters.length > 0
                     ? chapters[activeChapterIndex]?.title || `Chapter ${activeChapterIndex + 1}`
                     : 'Draft'}
                 </h2>
-                <p className="text-sm text-slate-500">
+                <p className="text-sm text-slate-500 dark:text-slate-400">
                   {chapters.length > 0
                     ? `Chapter ${activeChapterIndex + 1} of ${chapters.length}`
                     : actualLength
@@ -3154,14 +3228,14 @@ const [outlineMapData, setOutlineMapData] = useState<OutlineMapPayload | null>(n
                     <>
                   <button
                         onClick={() => handleSelectChapter(Math.max(0, activeChapterIndex - 1))}
-                        className="rounded-xl border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-40"
+                        className="rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-40"
                         disabled={activeChapterIndex === 0}
                   >
                         Previous
                   </button>
                       <button
                         onClick={() => handleSelectChapter(Math.min(chapters.length - 1, activeChapterIndex + 1))}
-                        className="rounded-xl border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-40"
+                        className="rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-40"
                         disabled={activeChapterIndex === chapters.length - 1}
                       >
                         Next
@@ -3171,7 +3245,7 @@ const [outlineMapData, setOutlineMapData] = useState<OutlineMapPayload | null>(n
                   {(chapters.length > 0 || result) && (
                   <button
                       onClick={() => setShowReadingPreview(true)}
-                      className="rounded-xl border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                      className="rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
                           >
                       Reading preview
                   </button>
@@ -3180,19 +3254,19 @@ const [outlineMapData, setOutlineMapData] = useState<OutlineMapPayload | null>(n
                     <>
                     <button
                       onClick={handleDownloadMarkdown}
-                        className="rounded-xl border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                        className="rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
                     >
                       Download .md
                     </button>
                     <button
                       onClick={handleDownloadPdf}
-                        className="rounded-xl bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white hover:bg-slate-800"
+                        className="rounded-xl bg-slate-900 dark:bg-slate-800 px-3 py-1.5 text-xs font-semibold text-white hover:bg-slate-800 dark:hover:bg-slate-700"
                     >
                         PDF
                     </button>
                           <button
                         onClick={() => setShowPublishModal(true)}
-                        className="rounded-xl border border-slate-900 px-3 py-1.5 text-xs font-semibold text-slate-900 hover:bg-slate-900 hover:text-white transition"
+                        className="rounded-xl border border-slate-900 dark:border-slate-700 px-3 py-1.5 text-xs font-semibold text-slate-900 dark:text-slate-300 hover:bg-slate-900 hover:text-white dark:hover:bg-slate-700 dark:hover:text-white transition"
                           >
                         Publish
                           </button>
@@ -3202,14 +3276,14 @@ const [outlineMapData, setOutlineMapData] = useState<OutlineMapPayload | null>(n
                                 </div>
 
               {isPartial && (
-                <div className="border-b border-slate-100 bg-indigo-50/60 px-6 py-3 text-xs text-indigo-700">
+                <div className="border-b border-slate-100 dark:border-slate-700 bg-indigo-50/60 dark:bg-indigo-900/30 px-6 py-3 text-xs text-indigo-700 dark:text-indigo-300">
                 Generated first {actualLength} pages. Use “Continue writing” to extend.
                                 </div>
                     )}
 
               <div className="p-6">
                 {!result && chapters.length === 0 ? (
-                  <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/50 p-16 text-center text-slate-400">
+                  <div className="rounded-2xl border border-dashed border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 p-16 text-center text-slate-400 dark:text-slate-300">
                     <p className="text-sm">Start writing or generate your first draft</p>
                               </div>
                 ) : (
@@ -3724,17 +3798,17 @@ const [outlineMapData, setOutlineMapData] = useState<OutlineMapPayload | null>(n
 
       {aiAssistResult && (
         <div className="fixed bottom-6 right-6 z-40 w-full max-w-md max-h-[80vh] overflow-y-auto">
-          <GlassCard className="p-5 shadow-2xl border border-slate-200 space-y-3">
+          <GlassCard className="p-5 shadow-2xl border border-slate-200 dark:border-slate-700 space-y-3">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <p className="text-xs uppercase tracking-[0.3em] text-slate-400">AI Assistant</p>
-                <h4 className="text-base font-semibold text-slate-900">
+                <p className="text-xs uppercase tracking-[0.3em] text-slate-400 dark:text-slate-500">AI Assistant</p>
+                <h4 className="text-base font-semibold text-slate-900 dark:text-white">
                   {AI_ACTION_LABELS[aiAssistResult.action]}
                 </h4>
               </div>
               <button
                 onClick={() => setAiAssistResult(null)}
-                className="rounded-full border border-slate-200 p-1.5 text-slate-500 hover:text-slate-900 hover:bg-slate-50"
+                className="rounded-full border border-slate-200 dark:border-slate-700 p-1.5 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
                 aria-label="Close AI assistant result"
               >
                 <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
@@ -3744,22 +3818,31 @@ const [outlineMapData, setOutlineMapData] = useState<OutlineMapPayload | null>(n
           </div>
 
             <div className="space-y-2">
-              <p className="text-xs text-slate-500 uppercase tracking-[0.2em]">Selected text</p>
-              <p className="text-sm text-slate-900 bg-slate-50 rounded-lg p-3 whitespace-pre-wrap max-h-32 overflow-auto">
+              <p className="text-xs text-slate-500 dark:text-slate-500 uppercase tracking-[0.2em]">Selected text</p>
+              <p className="text-sm text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-800 rounded-lg p-3 whitespace-pre-wrap max-h-32 overflow-auto">
                 {aiAssistResult.input}
               </p>
         </div>
 
             {aiAssistResult.status === 'loading' && (
-              <p className="text-sm text-slate-500">
+              <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 p-3 bg-slate-50 dark:bg-slate-800 rounded-lg">
                 <TypingIndicator />
-              </p>
+                <span className="ml-2">
+                  {aiAssistResult.action === 'rewrite' && 'Rewriting your text...'}
+                  {aiAssistResult.action === 'tone' && 'Adjusting tone...'}
+                  {aiAssistResult.action === 'suggest' && 'Generating suggestions...'}
+                  {aiAssistResult.action === 'detect' && 'Analyzing for issues...'}
+                  {aiAssistResult.action === 'storyTree' && 'Building story structure...'}
+                  {aiAssistResult.action === 'sceneBeats' && 'Identifying scene beats...'}
+                  {aiAssistResult.action === 'characterArc' && 'Mapping character arcs...'}
+                </span>
+              </div>
             )}
 
             {aiAssistResult.status === 'success' && (
               <>
                 <div className="space-y-2">
-                  <p className="text-xs text-slate-500 uppercase tracking-[0.2em]">
+                  <p className="text-xs text-slate-500 dark:text-slate-500 uppercase tracking-[0.2em]">
                     {aiAssistResult.action === 'rewrite'
                       ? 'Rewrite Options'
                       : aiAssistResult.action === 'suggest'
@@ -3779,9 +3862,9 @@ const [outlineMapData, setOutlineMapData] = useState<OutlineMapPayload | null>(n
                   {aiAssistResult.action === 'rewrite' && Array.isArray(aiAssistResult.output) && (
                     <div className="space-y-2">
                       {(aiAssistResult.output as string[]).map((option, idx) => (
-                        <div key={idx} className="bg-white border border-slate-200 rounded-lg p-3">
-                          <p className="text-xs text-slate-500 mb-1">Option {idx + 1}</p>
-                          <p className="text-sm text-slate-800 whitespace-pre-wrap">{option}</p>
+                        <div key={idx} className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-3 hover:shadow-md transition-shadow">
+                          <p className="text-xs text-slate-500 dark:text-slate-500 mb-1">Option {idx + 1}</p>
+                          <p className="text-sm text-slate-800 dark:text-white whitespace-pre-wrap">{option}</p>
                           <button
                             onClick={() => {
                               const range = storyEditorRef.current?.getSelectedRange();
@@ -3792,7 +3875,7 @@ const [outlineMapData, setOutlineMapData] = useState<OutlineMapPayload | null>(n
                               }
                               setAiAssistResult(null);
                             }}
-                            className="mt-2 text-xs text-indigo-600 hover:text-indigo-800 font-medium"
+                            className="mt-2 text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 font-medium transition-colors"
                           >
                             Use this version
                           </button>
@@ -3805,13 +3888,28 @@ const [outlineMapData, setOutlineMapData] = useState<OutlineMapPayload | null>(n
                   {aiAssistResult.action === 'suggest' && Array.isArray(aiAssistResult.output) && (
                     <div className="space-y-2">
                       {aiAssistResult.output.map((suggestion, idx) => (
-                        <div key={idx} className="bg-white border border-slate-200 rounded-lg p-3">
-                          <p className="text-sm font-semibold text-slate-900 mb-1">
+                        <div key={idx} className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-3 hover:shadow-md transition-shadow">
+                          <p className="text-sm font-semibold text-slate-900 dark:text-white mb-1">
                             {typeof suggestion === 'object' && 'title' in suggestion ? suggestion.title : `Suggestion ${idx + 1}`}
                           </p>
-                          <p className="text-sm text-slate-700">
+                          <p className="text-sm text-slate-700 dark:text-slate-300">
                             {typeof suggestion === 'object' && 'description' in suggestion ? suggestion.description : String(suggestion)}
                           </p>
+                          <button
+                            onClick={() => {
+                              const range = storyEditorRef.current?.getSelectedRange();
+                              const suggestionText = typeof suggestion === 'object' && 'description' in suggestion ? suggestion.description : String(suggestion);
+                              if (range && range.length > 0) {
+                                storyEditorRef.current?.replaceSelectedText(suggestionText);
+                              } else {
+                                storyEditorRef.current?.insertTextAtCursor(`\n${suggestionText}\n`);
+                              }
+                              setAiAssistResult(null);
+                            }}
+                            className="mt-2 text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 font-medium transition-colors"
+                          >
+                            Use this suggestion
+                          </button>
                         </div>
                       ))}
                     </div>
@@ -3865,20 +3963,20 @@ const [outlineMapData, setOutlineMapData] = useState<OutlineMapPayload | null>(n
                     (aiAssistResult.output as StoryTreeAct[]).length > 0 && (
                       <div className="space-y-3">
                         {(aiAssistResult.output as StoryTreeAct[]).map((act, index) => (
-                          <div key={index} className="rounded-xl border border-slate-200 bg-white p-3 space-y-2">
+                          <div key={index} className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3 space-y-2 hover:shadow-md transition-shadow">
                             <div className="flex items-center justify-between">
-                              <p className="text-sm font-semibold text-slate-900">{act.act}</p>
-                              <span className="text-xs text-slate-500">Beats: {act.beats?.length ?? 0}</span>
+                              <p className="text-sm font-semibold text-slate-900 dark:text-white">{act.act}</p>
+                              <span className="text-xs text-slate-500 dark:text-slate-400">Beats: {act.beats?.length ?? 0}</span>
                             </div>
-                            <p className="text-sm text-slate-700">{act.summary}</p>
+                            <p className="text-sm text-slate-700 dark:text-slate-300">{act.summary}</p>
                             {act.beats && act.beats.length > 0 && (
                               <div className="space-y-1">
                                 {act.beats.map((beat, beatIdx) => (
                                   <div
                                     key={beatIdx}
-                                    className="rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 text-xs text-slate-600"
+                                    className="rounded-lg border border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 px-3 py-2 text-xs text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors"
                                   >
-                                    <p className="font-semibold text-slate-800">{beat.title}</p>
+                                    <p className="font-semibold text-slate-800 dark:text-white">{beat.title}</p>
                                     <p>Conflict: {beat.conflict}</p>
                                     <p>Outcome: {beat.outcome}</p>
                                     <div className="mt-2 flex flex-wrap gap-2">
@@ -3891,8 +3989,9 @@ const [outlineMapData, setOutlineMapData] = useState<OutlineMapPayload | null>(n
                                           } else {
                                             storyEditorRef.current?.insertTextAtCursor(`\n${snippet}\n`);
                                           }
+                                          setAiAssistResult(null);
                                         }}
-                                        className="text-[11px] text-indigo-700 hover:text-indigo-900 font-medium"
+                                        className="text-[11px] text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 font-medium transition-colors"
                                       >
                                         Insert beat into draft
                                       </button>
@@ -3902,7 +4001,7 @@ const [outlineMapData, setOutlineMapData] = useState<OutlineMapPayload | null>(n
                                             text: `Story beat: ${beat.title}\nConflict: ${beat.conflict}\nOutcome: ${beat.outcome}`
                                           })
                                         }
-                                        className="text-[11px] text-slate-600 hover:text-slate-900 font-medium"
+                                        className="text-[11px] text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-300 font-medium transition-colors"
                                       >
                                         Create comment
                                       </button>
@@ -3920,15 +4019,24 @@ const [outlineMapData, setOutlineMapData] = useState<OutlineMapPayload | null>(n
                   {aiAssistResult.action === 'sceneBeats' &&
                     Array.isArray(aiAssistResult.output) &&
                     (aiAssistResult.output as SceneBeatSummary[]).length > 0 && (
-                      <div className="space-y-2">
+                      <div className="space-y-3">
                         {(aiAssistResult.output as SceneBeatSummary[]).map((beat, idx) => (
-                          <div key={idx} className="rounded-lg border border-slate-200 bg-white p-3 text-xs text-slate-600 space-y-1">
-                            <div className="flex items-center justify-between text-slate-900">
+                          <div key={idx} className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3 text-xs text-slate-600 dark:text-slate-300 space-y-1 hover:shadow-md transition-shadow">
+                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between text-slate-900 dark:text-white gap-2">
                               <p className="font-semibold text-sm">{beat.beat}</p>
-                              <span className="text-[11px] text-slate-500">Tension: {beat.tension}</span>
+                              <div className="flex gap-2">
+                                <span className={`text-[11px] px-2 py-0.5 rounded-full ${beat.tension === 'high' ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300' : beat.tension === 'medium' ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300' : 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'}`}>
+                                  Tension: {beat.tension}
+                                </span>
+                                <span className={`text-[11px] px-2 py-0.5 rounded-full ${beat.pacing === 'fast' ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300' : beat.pacing === 'medium' ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300' : 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'}`}>
+                                  Pacing: {beat.pacing}
+                                </span>
+                              </div>
                             </div>
-                            <p>Pacing: {beat.pacing}</p>
-                            <p>Recommendation: {beat.recommendation}</p>
+                            <div className="mt-1">
+                              <p className="font-medium text-[11px] text-slate-500 dark:text-slate-400 mb-0.5">Recommendation:</p>
+                              <p className="text-sm text-slate-700 dark:text-slate-200">{beat.recommendation}</p>
+                            </div>
                             <div className="mt-2 flex flex-wrap gap-2">
                               <button
                                 onClick={() => {
@@ -3939,8 +4047,9 @@ const [outlineMapData, setOutlineMapData] = useState<OutlineMapPayload | null>(n
                                   } else {
                                     storyEditorRef.current?.insertTextAtCursor(`\n${snippet}\n`);
                                   }
+                                  setAiAssistResult(null);
                                 }}
-                                className="text-[11px] text-indigo-700 hover:text-indigo-900 font-medium"
+                                className="text-[11px] text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 font-medium transition-colors"
                               >
                                 Insert beat into draft
                               </button>
@@ -3950,7 +4059,7 @@ const [outlineMapData, setOutlineMapData] = useState<OutlineMapPayload | null>(n
                                     text: `Scene beat: ${beat.beat}\nTension: ${beat.tension}\nPacing: ${beat.pacing}\nRecommendation: ${beat.recommendation}`
                                   })
                                 }
-                                className="text-[11px] text-slate-600 hover:text-slate-900 font-medium"
+                                className="text-[11px] text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-300 font-medium transition-colors"
                               >
                                 Create comment
                               </button>
@@ -3964,26 +4073,41 @@ const [outlineMapData, setOutlineMapData] = useState<OutlineMapPayload | null>(n
                   {aiAssistResult.action === 'characterArc' &&
                     Array.isArray(aiAssistResult.output) &&
                     (aiAssistResult.output as CharacterArcSummary[]).length > 0 && (
-                      <div className="space-y-2">
+                      <div className="space-y-3">
                         {(aiAssistResult.output as CharacterArcSummary[]).map((arc, idx) => (
-                          <div key={idx} className="rounded-xl border border-slate-200 bg-white p-3 text-xs text-slate-600 space-y-1">
-                            <p className="text-sm font-semibold text-slate-900">{arc.character}</p>
-                            <p>Goal: {arc.goal}</p>
-                            <p>Obstacle: {arc.obstacle}</p>
-                            <p>Emotional state: {arc.emotionalState}</p>
-                            <p className="text-indigo-700 font-semibold">Next step: {arc.nextStep}</p>
+                          <div key={idx} className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3 text-xs text-slate-600 dark:text-slate-300 space-y-2 hover:shadow-md transition-shadow">
+                            <p className="text-sm font-semibold text-slate-900 dark:text-white">{arc.character}</p>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                              <div className="bg-slate-50 dark:bg-slate-900/50 rounded-lg p-2">
+                                <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Goal:</span>
+                                <p className="text-slate-700 dark:text-slate-200 mt-0.5">{arc.goal}</p>
+                              </div>
+                              <div className="bg-slate-50 dark:bg-slate-900/50 rounded-lg p-2">
+                                <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Obstacle:</span>
+                                <p className="text-slate-700 dark:text-slate-200 mt-0.5">{arc.obstacle}</p>
+                              </div>
+                              <div className="bg-slate-50 dark:bg-slate-900/50 rounded-lg p-2">
+                                <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Emotional State:</span>
+                                <p className="text-slate-700 dark:text-slate-200 mt-0.5">{arc.emotionalState}</p>
+                              </div>
+                              <div className="bg-indigo-50 dark:bg-indigo-900/30 rounded-lg p-2">
+                                <span className="text-[11px] text-indigo-600 dark:text-indigo-400 font-medium">Next Step:</span>
+                                <p className="text-indigo-700 dark:text-indigo-300 font-semibold mt-0.5">{arc.nextStep}</p>
+                              </div>
+                            </div>
                             <div className="mt-2 flex flex-wrap gap-2">
                               <button
                                 onClick={() => {
-                                  const snippet = `${arc.character} — next step: ${arc.nextStep}`;
+                                  const snippet = `${arc.character}'s arc: ${arc.goal} — Obstacle: ${arc.obstacle} — Next step: ${arc.nextStep}`;
                                   const range = storyEditorRef.current?.getSelectedRange();
                                   if (range && range.length > 0) {
                                     storyEditorRef.current?.replaceSelectedText(snippet);
                                   } else {
                                     storyEditorRef.current?.insertTextAtCursor(`\n${snippet}\n`);
                                   }
+                                  setAiAssistResult(null);
                                 }}
-                                className="text-[11px] text-indigo-700 hover:text-indigo-900 font-medium"
+                                className="text-[11px] text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 font-medium transition-colors"
                               >
                                 Continue from this state
                               </button>
@@ -3993,7 +4117,7 @@ const [outlineMapData, setOutlineMapData] = useState<OutlineMapPayload | null>(n
                                     text: `Character arc (${arc.character}):\nGoal: ${arc.goal}\nObstacle: ${arc.obstacle}\nEmotion: ${arc.emotionalState}\nNext: ${arc.nextStep}`
                                   })
                                 }
-                                className="text-[11px] text-slate-600 hover:text-slate-900 font-medium"
+                                className="text-[11px] text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-300 font-medium transition-colors"
                               >
                                 Create comment
                               </button>
@@ -4005,14 +4129,21 @@ const [outlineMapData, setOutlineMapData] = useState<OutlineMapPayload | null>(n
                   
                   {/* Tone: Single string */}
                   {(aiAssistResult.action === 'tone' || (typeof aiAssistResult.output === 'string')) && (
-                    <div className="bg-white border border-slate-200 rounded-lg p-3 text-sm text-slate-800 whitespace-pre-wrap max-h-48 overflow-auto">
+                    <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-4 text-sm text-slate-800 dark:text-white whitespace-pre-wrap max-h-48 overflow-auto shadow-sm hover:shadow-md transition-shadow">
                       {typeof aiAssistResult.output === 'string' ? aiAssistResult.output : String(aiAssistResult.output)}
                     </div>
                   )}
                   
-                  <div className="flex items-center gap-3 flex-wrap text-xs text-slate-400">
+                  <div className="flex items-center gap-3 flex-wrap text-xs text-slate-400 dark:text-slate-500 mt-3 pt-3 border-t border-slate-200 dark:border-slate-700">
                     {aiAssistResult.tokens && (
-                      <span>tokens: {aiAssistResult.tokens}</span>
+                      <span className="flex items-center gap-1">
+                        <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                          <circle cx="12" cy="12" r="10" />
+                          <line x1="12" y1="8" x2="12" y2="12" />
+                          <line x1="12" y1="16" x2="12.01" y2="16" />
+                        </svg>
+                        {aiAssistResult.tokens} tokens
+                      </span>
                     )}
                     {aiAssistResult.charactersUsed && aiAssistResult.charactersUsed > 0 && (
                       <span className="flex items-center gap-1">
@@ -4046,7 +4177,7 @@ const [outlineMapData, setOutlineMapData] = useState<OutlineMapPayload | null>(n
                   )}
                   <button
                     onClick={() => setAiAssistResult(null)}
-                    className="rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50 transition"
+                    className="rounded-lg border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
                   >
                     Dismiss
                   </button>
@@ -4055,8 +4186,27 @@ const [outlineMapData, setOutlineMapData] = useState<OutlineMapPayload | null>(n
             )}
 
             {aiAssistResult.status === 'error' && (
-              <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-600">
-                {aiAssistResult.error}
+              <div className="rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 p-4 text-sm text-red-600 dark:text-red-300 shadow-sm">
+                <div className="flex items-start gap-3">
+                  <svg className="w-5 h-5 mt-0.5 text-red-500 dark:text-red-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="8" x2="12" y2="12" />
+                    <line x1="12" y1="16" x2="12.01" y2="16" />
+                  </svg>
+                  <div>
+                    <h5 className="font-medium text-red-800 dark:text-red-200 mb-1">AI Processing Error</h5>
+                    <p>{aiAssistResult.error}</p>
+                    <button
+                      onClick={() => {
+                        // Retry the last action
+                        handleAiAssistAction(aiAssistResult.action);
+                      }}
+                      className="mt-2 text-xs text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 font-medium transition-colors"
+                    >
+                      Retry this action
+                    </button>
+                  </div>
+                </div>
               </div>
             )}
           </GlassCard>
@@ -4163,13 +4313,40 @@ const [outlineMapData, setOutlineMapData] = useState<OutlineMapPayload | null>(n
         onExportAudio={handleDownloadAudioScript}
       />
 
-    <LoginModal
-      open={showLoginModal}
-      onClose={() => {
-        setShowLoginModal(false);
-        // 移除自动跳转，让用户继续停留在当前页面
+      <LoginModal
+        open={showLoginModal}
+        onClose={() => {
+          setShowLoginModal(false);
+          // 清除自动跳转，让用户继续停留在当前页面
+        }}
+        onSuccess={handleLoginSuccess}
+      />
+
+      {/* Points Exhausted Modal */}
+      <PointsExhaustedModal
+        isOpen={showPointsExhaustedModal}
+        onClose={() => setShowPointsExhaustedModal(false)}
+        remainingPoints={remainingPoints}
+        requiredPoints={requiredPoints}
+        action={exhaustedAction}
+      />
+
+      {/* AI Assistant Components */}
+    <AIFloatingButton 
+      onClick={() => setShowAIDrawer(true)} 
+      hasNewMessages={false}
+    />
+    <AIAssistantDrawer
+      open={showAIDrawer}
+      onClose={() => setShowAIDrawer(false)}
+      selectedText={selectedTextForAI}
+      onAction={(action) => {
+        handleAiAssistAction(action);
+        setShowAIDrawer(false);
       }}
-      onSuccess={handleLoginSuccess}
+      canUseAssistant={true} // 始终允许访问
+      requiredTier={aiAssistantRequiredTier}
+      currentTier={tier}
     />
     </>
   );

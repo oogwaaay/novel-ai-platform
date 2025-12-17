@@ -5,6 +5,7 @@ import { useAuthStore } from '../store/authStore';
 // Define context type
 interface PointsContextType {
   balance: number;
+  availableBalance: number;
   totalEarned: number;
   loading: boolean;
   error: string | null;
@@ -14,6 +15,7 @@ interface PointsContextType {
 // Create context with default values
 const PointsContext = createContext<PointsContextType>({
   balance: 0,
+  availableBalance: 0,
   totalEarned: 0,
   loading: true,
   error: null,
@@ -28,6 +30,7 @@ interface PointsProviderProps {
 // PointsProvider component
 export const PointsProvider: React.FC<PointsProviderProps> = ({ children }) => {
   const [balance, setBalance] = useState<number>(0);
+  const [availableBalance, setAvailableBalance] = useState<number>(0);
   const [totalEarned, setTotalEarned] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -38,6 +41,7 @@ export const PointsProvider: React.FC<PointsProviderProps> = ({ children }) => {
   const fetchBalance = async () => {
     if (!isAuthenticated || !user) {
       setBalance(0);
+      setAvailableBalance(0);
       setTotalEarned(0);
       setLoading(false);
       return;
@@ -49,6 +53,7 @@ export const PointsProvider: React.FC<PointsProviderProps> = ({ children }) => {
     try {
       const walletData = await getWalletBalance();
       setBalance(walletData.balance);
+      setAvailableBalance(walletData.available_balance || walletData.balance);
       setTotalEarned(walletData.total_earned);
     } catch (err) {
       console.error('Failed to fetch wallet balance:', err);
@@ -83,6 +88,7 @@ export const PointsProvider: React.FC<PointsProviderProps> = ({ children }) => {
   // Context value
   const contextValue: PointsContextType = {
     balance,
+    availableBalance,
     totalEarned,
     loading,
     error,

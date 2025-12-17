@@ -8,7 +8,7 @@ const FEATURE_MIN_TIER: Record<CapabilityKey, SubscriptionTier> = {
   styleMemory: 'pro',
   characterManagement: 'pro',
   knowledgeBase: 'unlimited',
-  aiAssistant: 'pro',
+  aiAssistant: 'free', // 修改为free，允许所有用户访问
   versionHistory: 'pro',
   collaboration: 'unlimited',
   analytics: 'pro',

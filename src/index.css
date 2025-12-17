@@ -4,27 +4,12 @@
 
 :root {
   font-family: 'Inter', 'SF Pro Display', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  /* 基本CSS变量，主要用于阅读模式 */
   --bg-page: #f5f7fb;
   --bg-card: rgba(255, 255, 255, 0.85);
-  --border-card: rgba(226, 232, 240, 0.6);
   --text-primary: #0f172a;
   --text-secondary: #475569;
   --accent: #111827;
-  --shadow-soft: 0 24px 60px rgba(15, 23, 42, 0.08);
-  
-  /* Dark mode variables */
-  --bg-page-dark: #0f172a;
-  --bg-card-dark: rgba(30, 41, 59, 0.95);
-  --border-card-dark: rgba(51, 65, 85, 0.8);
-  --text-primary-dark: #f1f5f9;
-  --text-secondary-dark: #cbd5e1;
-  --accent-dark: #3b82f6;
-  --shadow-soft-dark: 0 24px 60px rgba(0, 0, 0, 0.3);
-  --bg-button-dark: rgba(59, 130, 246, 0.1);
-  --bg-button-hover-dark: rgba(59, 130, 246, 0.2);
-  --border-button-dark: rgba(59, 130, 246, 0.3);
-  --bg-input-dark: rgba(15, 23, 42, 0.8);
-  --bg-highlight-dark: rgba(59, 130, 246, 0.1);
 }
 
 body {
@@ -42,364 +27,38 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Dark mode styles */
-[data-theme="dark"] {
-  /* Set global color scheme */
-  color-scheme: dark;
-  
-  /* Update CSS variables for dark mode */
-  --bg-page: var(--bg-page-dark);
-  --bg-card: var(--bg-card-dark);
-  --border-card: var(--border-card-dark);
-  --text-primary: var(--text-primary-dark);
-  --text-secondary: var(--text-secondary-dark);
-  --accent: var(--accent-dark);
-  --shadow-soft: var(--shadow-soft-dark);
-}
-
-[data-theme="dark"] body {
-  background-color: var(--bg-page-dark);
+/* Dark mode body background */
+.dark body {
+  background-color: #0f172a;
   background-image: 
     linear-gradient(rgba(15, 23, 42, 0.9), rgba(15, 23, 42, 0.9)),
     url('/background.png');
-  color: var(--text-primary-dark);
 }
 
-/* Ensure all elements inherit dark mode colors */
-[data-theme="dark"] * {
-  color: inherit;
-  border-color: inherit;
-}
-
-/* Ensure form elements respect dark mode */
-[data-theme="dark"] input,
-[data-theme="dark"] textarea,
-[data-theme="dark"] select {
-  background-color: var(--bg-input-dark);
-  color: var(--text-primary-dark);
-  border-color: var(--border-card-dark);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-}
-
-/* Ensure input focus state is visible */
-[data-theme="dark"] input:focus,
-[data-theme="dark"] textarea:focus,
-[data-theme="dark"] select:focus {
-  outline: 2px solid var(--accent-dark);
-  outline-offset: 2px;
-  border-color: var(--accent-dark);
-}
-
-/* Ensure links respect dark mode */
-[data-theme="dark"] a {
-  color: var(--accent-dark);
-  transition: color 0.2s ease;
-}
-
-[data-theme="dark"] a:hover {
-  color: #60a5fa;
-}
-
-/* Ensure buttons respect dark mode */
-[data-theme="dark"] button {
-  color: var(--text-primary-dark);
-  background-color: var(--bg-button-dark);
-  border-color: var(--border-button-dark);
-  transition: all 0.2s ease;
-}
-
-[data-theme="dark"] button:hover {
-  background-color: var(--bg-button-hover-dark);
-  border-color: var(--accent-dark);
-}
-
-/* Ensure button focus state is visible */
-[data-theme="dark"] button:focus {
-  outline: 2px solid var(--accent-dark);
-  outline-offset: 2px;
-}
-
-/* Ensure borders respect dark mode */
-[data-theme="dark"] .border,
-[data-theme="dark"] .border-slate-200,
-[data-theme="dark"] .border-slate-300,
-[data-theme="dark"] .border-gray-200,
-[data-theme="dark"] .border-gray-300 {
-  border-color: var(--border-card-dark);
-}
-
-/* Ensure backgrounds respect dark mode */
-[data-theme="dark"] .bg-white,
-[data-theme="dark"] .bg-slate-50,
-[data-theme="dark"] .bg-gray-50 {
-  background-color: var(--bg-card-dark);
-}
-
-[data-theme="dark"] .bg-gray-100,
-[data-theme="dark"] .bg-slate-100,
-[data-theme="dark"] .bg-gray-200 {
-  background-color: rgba(30, 41, 59, 0.9);
-}
-
-/* Ensure text colors respect dark mode */
-[data-theme="dark"] .text-slate-500,
-[data-theme="dark"] .text-slate-600,
-[data-theme="dark"] .text-slate-700,
-[data-theme="dark"] .text-gray-500,
-[data-theme="dark"] .text-gray-600,
-[data-theme="dark"] .text-gray-700 {
-  color: var(--text-secondary-dark);
-  opacity: 0.9;
-}
-
-[data-theme="dark"] .text-slate-800,
-[data-theme="dark"] .text-slate-900,
-[data-theme="dark"] .text-gray-800,
-[data-theme="dark"] .text-gray-900 {
-  color: var(--text-primary-dark);
-  opacity: 1;
-}
-
-[data-theme="dark"] .text-white {
-  color: var(--text-primary-dark);
-  opacity: 1;
-}
-
-/* Ensure body text has proper contrast */
-[data-theme="dark"] p,
-[data-theme="dark"] span,
-[data-theme="dark"] li,
-[data-theme="dark"] div {
-  color: var(--text-primary-dark);
-}
-
-/* Ensure hover effects respect dark mode */
-[data-theme="dark"] .hover\:text-slate-900:hover,
-[data-theme="dark"] .hover\:text-gray-900:hover {
-  color: var(--text-primary-dark);
-  opacity: 1;
-}
-
-/* Ensure hover effects on cards */
-[data-theme="dark"] .hover\:bg-slate-50:hover,
-[data-theme="dark"] .hover\:bg-gray-50:hover {
-  background-color: rgba(47, 63, 83, 0.95);
-}
-
-/* Ensure focus effects respect dark mode */
-[data-theme="dark"] :focus {
-  outline-color: var(--accent-dark);
-  outline-offset: 2px;
+/* Dark mode color scheme */
+.dark {
+  color-scheme: dark;
 }
 
 /* Ensure story editor respects dark mode */
-[data-theme="dark"] .story-editor .ql-container,
-[data-theme="dark"] .story-editor-compact .ql-container {
-  background-color: var(--bg-card-dark);
-  border-color: var(--border-card-dark);
+.dark .story-editor .ql-container,
+.dark .story-editor-compact .ql-container {
+  background-color: #1e293b;
+  border-color: #334155;
 }
 
-[data-theme="dark"] .story-editor .ql-toolbar,
-[data-theme="dark"] .story-editor-compact .ql-toolbar {
-  background-color: rgba(30, 41, 59, 0.95);
-  border-color: var(--border-card-dark);
+.dark .story-editor .ql-toolbar,
+.dark .story-editor-compact .ql-toolbar {
+  background-color: #1e293b;
+  border-color: #334155;
 }
 
-[data-theme="dark"] .story-editor .ql-editor,
-[data-theme="dark"] .story-editor-compact .ql-editor {
-  color: var(--text-primary-dark);
-  background-color: var(--bg-card-dark);
+.dark .story-editor .ql-editor,
+.dark .story-editor-compact .ql-editor {
+  color: #f1f5f9;
+  background-color: #1e293b;
   font-size: 16px;
   line-height: 1.7;
-}
-
-/* Ensure scrollbars respect dark mode */
-[data-theme="dark"] .scrollbar-auto-hide:hover {
-  scrollbar-color: rgba(148, 163, 184, 0.5) transparent;
-}
-
-[data-theme="dark"] .scrollbar-auto-hide:hover::-webkit-scrollbar-thumb {
-  background-color: rgba(148, 163, 184, 0.5);
-}
-
-/* Ensure glass card respects dark mode */
-[data-theme="dark"] .bg-white\/80,
-[data-theme="dark"] .bg-white\/90,
-[data-theme="dark"] .bg-white\/100 {
-  background-color: var(--bg-card-dark);
-}
-
-[data-theme="dark"] .border-slate-200\/50,
-[data-theme="dark"] .border-slate-300\/50 {
-  border-color: var(--border-card-dark);
-}
-
-/* Ensure toggle buttons respect dark mode */
-[data-theme="dark"] .bg-gray-200,
-[data-theme="dark"] .bg-slate-200 {
-  background-color: rgba(71, 85, 105, 0.7);
-}
-
-[data-theme="dark"] .bg-blue-600,
-[data-theme="dark"] .bg-blue-500 {
-  background-color: var(--accent-dark);
-}
-
-/* Ensure upgrade cards respect dark mode */
-[data-theme="dark"] .bg-gradient-to-r {
-  background-color: var(--bg-card-dark);
-  background-image: none;
-}
-
-/* Ensure activity timeline respects dark mode */
-[data-theme="dark"] .bg-slate-50,
-[data-theme="dark"] .bg-gray-50 {
-  background-color: var(--bg-card-dark);
-}
-
-/* Ensure notifications respect dark mode */
-[data-theme="dark"] .bg-green-100 {
-  background-color: rgba(22, 163, 74, 0.1);
-  color: #34d399;
-}
-
-[data-theme="dark"] .bg-red-100 {
-  background-color: rgba(239, 68, 68, 0.1);
-  color: #fca5a5;
-}
-
-/* Ensure toasts respect dark mode */
-[data-theme="dark"] .bg-white {
-  background-color: var(--bg-card-dark);
-  color: var(--text-primary-dark);
-}
-
-/* Ensure loading indicators respect dark mode */
-[data-theme="dark"] .animate-spin {
-  border-color: rgba(148, 163, 184, 0.3);
-  border-top-color: var(--accent-dark);
-}
-
-/* Ensure nav links have proper contrast */
-[data-theme="dark"] .text-sm,
-[data-theme="dark"] .text-base,
-[data-theme="dark"] .text-lg {
-  color: var(--text-primary-dark);
-  opacity: 0.95;
-}
-
-/* Ensure headers have proper contrast */
-[data-theme="dark"] h1,
-[data-theme="dark"] h2,
-[data-theme="dark"] h3,
-[data-theme="dark"] h4,
-[data-theme="dark"] h5,
-[data-theme="dark"] h6 {
-  color: var(--text-primary-dark);
-  opacity: 1;
-  font-weight: 600;
-}
-
-/* Ensure buttons have proper text contrast */
-[data-theme="dark"] button {
-  color: var(--text-primary-dark) !important;
-  opacity: 0.95;
-}
-
-/* Ensure links have proper contrast */
-[data-theme="dark"] a {
-  color: var(--accent-dark) !important;
-  opacity: 1;
-}
-
-/* Ensure header components have proper contrast */
-[data-theme="dark"] .dark\:bg-slate-800 {
-  background-color: var(--bg-card-dark);
-}
-
-[data-theme="dark"] .dark\:text-slate-300 {
-  color: var(--text-primary-dark) !important;
-  opacity: 0.9;
-}
-
-[data-theme="dark"] .dark\:text-slate-400 {
-  color: var(--text-secondary-dark) !important;
-  opacity: 0.85;
-}
-
-/* Ensure login modal has proper contrast */
-[data-theme="dark"] .bg-white.dark\:bg-slate-800 {
-  background-color: var(--bg-card-dark);
-  color: var(--text-primary-dark);
-}
-
-/* Ensure input placeholders have proper contrast */
-[data-theme="dark"] ::placeholder {
-  color: var(--text-secondary-dark) !important;
-  opacity: 0.7;
-}
-
-[data-theme="dark"] :-ms-input-placeholder {
-  color: var(--text-secondary-dark) !important;
-  opacity: 0.7;
-}
-
-[data-theme="dark"] ::-ms-input-placeholder {
-  color: var(--text-secondary-dark) !important;
-  opacity: 0.7;
-}
-
-/* Ensure border elements are visible */
-[data-theme="dark"] .border,
-[data-theme="dark"] .border-slate-200,
-[data-theme="dark"] .border-gray-200 {
-  border-color: rgba(51, 65, 85, 0.8) !important;
-  opacity: 0.8;
-}
-
-/* Ensure disabled elements have proper contrast */
-[data-theme="dark"] :disabled {
-  color: var(--text-secondary-dark) !important;
-  opacity: 0.6;
-}
-
-/* Ensure tooltips have proper contrast */
-[data-theme="dark"] .tooltip {
-  background-color: rgba(15, 23, 42, 0.95) !important;
-  color: var(--text-primary-dark) !important;
-  border: 1px solid var(--border-card-dark) !important;
-}
-
-/* Ensure badge elements have proper contrast */
-[data-theme="dark"] .badge {
-  background-color: var(--bg-button-dark) !important;
-  color: var(--text-primary-dark) !important;
-  border-color: var(--border-button-dark) !important;
-}
-
-/* Ensure tabs have proper contrast */
-[data-theme="dark"] .tab {
-  color: var(--text-secondary-dark) !important;
-}
-
-[data-theme="dark"] .tab-active {
-  color: var(--text-primary-dark) !important;
-  border-color: var(--accent-dark) !important;
-}
-
-/* Ensure dropdown menus have proper contrast */
-[data-theme="dark"] .dropdown-menu {
-  background-color: var(--bg-card-dark) !important;
-  color: var(--text-primary-dark) !important;
-  border-color: var(--border-card-dark) !important;
-}
-
-/* Ensure divider elements are visible */
-[data-theme="dark"] .divider,
-[data-theme="dark"] .border-t,
-[data-theme="dark"] .border-b {
-  border-color: rgba(51, 65, 85, 0.6) !important;
-  opacity: 0.7;
 }
 
 .story-editor .ql-container {

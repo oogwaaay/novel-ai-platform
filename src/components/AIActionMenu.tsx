@@ -138,14 +138,14 @@ export default function AIActionMenu({
 
   return (
     <div
-      ref={menuRef}
-      className="fixed z-50 bg-white/95 backdrop-blur-sm border border-slate-200/80 rounded-xl shadow-xl py-1.5 min-w-[220px]"
-      style={{
-        left: `${menuStyle.left}px`,
-        top: `${menuStyle.top}px`,
-        transform: menuStyle.transform
-      }}
-    >
+          ref={menuRef}
+          className="fixed z-50 bg-white/95 backdrop-blur-md border border-slate-200/80 rounded-xl shadow-2xl py-1.5 min-w-[280px] overflow-hidden"
+          style={{
+            left: `${menuStyle.left}px`,
+            top: `${menuStyle.top}px`,
+            transform: menuStyle.transform
+          }}
+        >
       {ACTION_COPY.map((action) => (
         <button
           key={action.id}
@@ -156,23 +156,19 @@ export default function AIActionMenu({
             onAction(action.id);
             onClose();
           }}
-          className={`w-full text-left px-4 py-2.5 text-sm transition-colors flex flex-col gap-1 group ${
-            isActionEnabled
-              ? 'text-slate-700 hover:bg-slate-50/80'
-              : 'text-slate-400 cursor-not-allowed'
-          }`}
+          className={`w-full text-left px-5 py-3 text-sm transition-all duration-200 flex flex-col gap-1 group ${isActionEnabled
+              ? 'text-slate-700 hover:bg-slate-50/80 hover:translate-x-1'
+              : 'text-slate-400 cursor-not-allowed opacity-70'}`}
         >
           <div className="flex items-center gap-3">
             <span
-              className={`${
-                isActionEnabled ? 'text-slate-500 group-hover:text-slate-700' : 'text-slate-400'
-              } transition-colors`}
+              className={`${isActionEnabled ? 'text-indigo-500 group-hover:text-indigo-600' : 'text-slate-400'} transition-all duration-200 group-hover:scale-110`}
             >
               {ActionIcons[action.id]}
             </span>
             <span className="font-medium">{action.label}</span>
           </div>
-          <p className="text-xs text-slate-500">{action.description}</p>
+          <p className="text-xs text-slate-500 group-hover:text-slate-600 transition-colors duration-200">{action.description}</p>
         </button>
       ))}
 
@@ -182,6 +178,23 @@ export default function AIActionMenu({
         </div>
       )}
 
+      {/* Points Consumption Notice for Free/Starter plans */}
+      {minSelectionMet && canUseAssistant && (currentTier === 'free' || currentTier === 'starter') && (
+        <div className="px-4 py-3 border-t border-slate-100 bg-amber-50/80 text-xs font-medium text-amber-600 space-y-1">
+          <p className="font-medium">AI Action Costs:</p>
+          <div className="grid grid-cols-2 gap-1">
+            <div>Rewrite: <strong>10 points</strong></div>
+            <div>Adjust Tone: <strong>10 points</strong></div>
+            <div>Plot Suggestions: <strong>15 points</strong></div>
+            <div>Detect Issues: <strong>8 points</strong></div>
+            <div>Story Structure: <strong>20 points</strong></div>
+            <div>Scene Beats: <strong>18 points</strong></div>
+            <div>Character Arcs: <strong>15 points</strong></div>
+          </div>
+        </div>
+      )}
+      
+      {/* Original canUseAssistant check (should rarely show now) */}
       {minSelectionMet && !canUseAssistant && (
         <div className="px-4 py-3 border-t border-slate-100 bg-slate-50/90 text-sm text-slate-600 space-y-2">
           <p>

@@ -170,62 +170,40 @@ export default function ContextDrawer({
       }
     ];
 
-    if (hasFeature('characterManagement')) {
-      blocks.push({
-        id: 'characters',
-        content: (
-          <CharacterPanel
-            characters={characters}
-            onCharactersChange={onCharactersChange}
-            isCollapsed={isCharactersCollapsed}
-            onToggleCollapse={() => setIsCharactersCollapsed(!isCharactersCollapsed)}
-          />
-        )
-      });
-    } else {
-      blocks.push({
-        id: 'characters-upgrade',
-        content: (
-          <section className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4">
-            <UpgradePrompt
-              currentTier={tier}
-              requiredTier={getRequiredTier('characterManagement')}
-              featureName="Character Manager"
-            />
-          </section>
-        )
-      });
-    }
+    // Show character panel to all users
+    blocks.push({
+      id: 'characters',
+      content: (
+        <CharacterPanel
+          characters={characters}
+          onCharactersChange={onCharactersChange}
+          isCollapsed={isCharactersCollapsed}
+          onToggleCollapse={() => setIsCharactersCollapsed(!isCharactersCollapsed)}
+          canUseCharacters={hasFeature('characterManagement')}
+          requiredTier={getRequiredTier('characterManagement')}
+          currentTier={tier}
+        />
+      )
+    });
 
     const planContextLimit = plan?.limits?.contextWindowWords ?? 4000;
 
-    if (hasFeature('styleMemory')) {
-      blocks.push({
-        id: 'style-memory',
-        content: (
-          <StyleMemoryPanel
-            style={writingStyle}
-            onStyleChange={onStyleChange}
-            existingContent={existingContent}
-            isCollapsed={isVoiceCollapsed}
-            onToggleCollapse={() => setIsVoiceCollapsed(!isVoiceCollapsed)}
-          />
-        )
-      });
-    } else {
-      blocks.push({
-        id: 'style-upgrade',
-        content: (
-          <section className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4">
-            <UpgradePrompt
-              currentTier={tier}
-              requiredTier={getRequiredTier('styleMemory')}
-              featureName="Style Memory"
-            />
-          </section>
-        )
-      });
-    }
+    // Show style memory panel to all users
+    blocks.push({
+      id: 'style-memory',
+      content: (
+        <StyleMemoryPanel
+          style={writingStyle}
+          onStyleChange={onStyleChange}
+          existingContent={existingContent}
+          isCollapsed={isVoiceCollapsed}
+          onToggleCollapse={() => setIsVoiceCollapsed(!isVoiceCollapsed)}
+          canUseStyleMemory={hasFeature('styleMemory')}
+          requiredTier={getRequiredTier('styleMemory')}
+          currentTier={tier}
+        />
+      )
+    });
 
     blocks.push({
       id: 'context-optimization',
@@ -272,65 +250,43 @@ export default function ContextDrawer({
       )
     });
 
-    if (hasFeature('templateLibrary')) {
-      blocks.push({
-        id: 'templates',
-        content: (
-          <StyleTemplateLibrary
-            customTemplates={styleTemplates}
-            onChange={onStyleTemplatesChange}
-            onApply={onApplyStyleTemplate}
-            onSaveCurrent={onSaveStyleTemplate}
-            canSaveCurrent={Boolean(writingStyle)}
-            isCollapsed={isTemplatesCollapsed}
-            onToggle={() => setIsTemplatesCollapsed(!isTemplatesCollapsed)}
-          />
-        )
-      });
-    } else {
-      blocks.push({
-        id: 'templates-upgrade',
-        content: (
-          <section className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4">
-            <UpgradePrompt
-              currentTier={tier}
-              requiredTier={getRequiredTier('templateLibrary')}
-              featureName="Template Library"
-            />
-          </section>
-        )
-      });
-    }
+    // Show template library to all users
+    blocks.push({
+      id: 'templates',
+      content: (
+        <StyleTemplateLibrary
+          customTemplates={styleTemplates}
+          onChange={onStyleTemplatesChange}
+          onApply={onApplyStyleTemplate}
+          onSaveCurrent={onSaveStyleTemplate}
+          canSaveCurrent={Boolean(writingStyle)}
+          isCollapsed={isTemplatesCollapsed}
+          onToggle={() => setIsTemplatesCollapsed(!isTemplatesCollapsed)}
+          canUseTemplates={hasFeature('templateLibrary')}
+          requiredTier={getRequiredTier('templateLibrary')}
+          currentTier={tier}
+        />
+      )
+    });
 
-    if (hasFeature('knowledgeBase')) {
-      blocks.push({
-        id: 'knowledge',
-        content: (
-          <KnowledgeDock
-            entries={knowledgeEntries}
-            onChange={onKnowledgeChange}
-            isCollapsed={isKnowledgeCollapsed}
-            onToggle={() => setIsKnowledgeCollapsed(!isKnowledgeCollapsed)}
-            sourceText={sourceText}
-            genre={genre}
-            currentProjectId={currentProjectId}
-          />
-        )
-      });
-    } else {
-      blocks.push({
-        id: 'knowledge-upgrade',
-        content: (
-          <section className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4">
-            <UpgradePrompt
-              currentTier={tier}
-              requiredTier={getRequiredTier('knowledgeBase')}
-              featureName="Knowledge Dock"
-            />
-          </section>
-        )
-      });
-    }
+    // Show knowledge dock to all users
+    blocks.push({
+      id: 'knowledge',
+      content: (
+        <KnowledgeDock
+          entries={knowledgeEntries}
+          onChange={onKnowledgeChange}
+          isCollapsed={isKnowledgeCollapsed}
+          onToggle={() => setIsKnowledgeCollapsed(!isKnowledgeCollapsed)}
+          sourceText={sourceText}
+          genre={genre}
+          currentProjectId={currentProjectId}
+          canUseKnowledge={hasFeature('knowledgeBase')}
+          requiredTier={getRequiredTier('knowledgeBase')}
+          currentTier={tier}
+        />
+      )
+    });
 
     return blocks;
   }, [

@@ -7,13 +7,19 @@ interface CharacterPanelProps {
   onCharactersChange: (characters: Character[]) => void;
   isCollapsed?: boolean;
   onToggleCollapse?: () => void;
+  canUseCharacters: boolean;
+  requiredTier: string;
+  currentTier: string;
 }
 
 export default function CharacterPanel({
   characters,
   onCharactersChange,
   isCollapsed = false,
-  onToggleCollapse
+  onToggleCollapse,
+  canUseCharacters,
+  requiredTier,
+  currentTier
 }: CharacterPanelProps) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState('');
@@ -96,7 +102,7 @@ export default function CharacterPanel({
           </p>
         </div>
         <div className="flex items-center gap-2">
-          {characters.length >= 2 && (
+          {canUseCharacters && characters.length >= 2 && (
             <button
               type="button"
               onClick={() => setShowRelationshipGraph(true)}
@@ -106,13 +112,15 @@ export default function CharacterPanel({
               Graph
             </button>
           )}
-          <button
-            type="button"
-            onClick={handleAdd}
-            className="rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:border-slate-300 hover:text-slate-900 transition"
-          >
-            Add
-          </button>
+          {canUseCharacters && (
+            <button
+              type="button"
+              onClick={handleAdd}
+              className="rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:border-slate-300 hover:text-slate-900 transition"
+            >
+              Add
+            </button>
+          )}
           {onToggleCollapse && (
             <button
               type="button"
@@ -136,243 +144,264 @@ export default function CharacterPanel({
 
       {!isCollapsed && (
         <div className="p-4 space-y-3 max-h-[400px] overflow-y-auto">
-        {/* Empty state - only show when no characters and not editing */}
-        {characters.length === 0 && !editingId && (
-          <div className="text-center py-6 space-y-3">
-            <div className="w-12 h-12 mx-auto rounded-full bg-slate-100 flex items-center justify-center">
-              <svg className="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-            </div>
-            <p className="text-sm text-slate-500">No characters yet</p>
-            <button
-              onClick={handleAdd}
-              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition shadow-sm"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-              Add your first character
-            </button>
-          </div>
-        )}
-
-        {/* Character list - show when there are characters OR when editing a new one */}
-        {(characters.length > 0 || editingId) && (
-          <>
-            {/* Show editing form for new character if editingId doesn't match any existing character */}
-            {editingId && !characters.find(c => c.id === editingId) && (
-              <div
-                id={`character-${editingId}`}
-                className="rounded-xl border border-slate-300 shadow-md ring-2 ring-slate-100 bg-white p-4 space-y-3"
-              >
-                <div className="space-y-3">
-                  <div>
-                    <label className="block text-xs font-medium text-slate-700 mb-1.5">Character name</label>
-                    <input
-                      ref={inputRef}
-                      type="text"
-                      value={editingName}
-                      onChange={e => setEditingName(e.target.value)}
-                      onKeyDown={e => {
-                        if (e.key === 'Enter' && !e.shiftKey) {
-                          e.preventDefault();
-                          if (editingName.trim()) {
-                            const newChar: Character = {
-                              id: editingId,
-                              name: editingName.trim(),
-                              description: editingDesc.trim(),
-                              createdAt: Date.now(),
-                              updatedAt: Date.now()
-                            };
-                            onCharactersChange([newChar]);
-                            setEditingId(null);
-                          }
-                        }
-                        if (e.key === 'Escape') {
-                          setEditingId(null);
-                        }
-                      }}
-                      placeholder="e.g., Alice"
-                      className="w-full text-sm font-medium text-slate-900 border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-900/20 focus:border-slate-400 transition"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-slate-700 mb-1.5">
-                      Description <span className="text-slate-400 font-normal">(optional)</span>
-                    </label>
-                    <textarea
-                      value={editingDesc}
-                      onChange={e => setEditingDesc(e.target.value)}
-                      onKeyDown={e => {
-                        if (e.key === 'Escape') {
-                          setEditingId(null);
-                        }
-                      }}
-                      placeholder="e.g., A brave detective with a mysterious past"
-                      rows={3}
-                      maxLength={200}
-                      className="w-full text-sm text-slate-600 border border-slate-200 rounded-lg px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-slate-900/20 focus:border-slate-400 transition"
-                    />
-                    <p className="text-xs text-slate-400 mt-1 text-right">{editingDesc.length}/200</p>
-                  </div>
-                  <div className="flex items-center gap-2 pt-1">
-                    <button
-                      onClick={() => {
-                        if (editingName.trim()) {
-                          const newChar: Character = {
-                            id: editingId,
-                            name: editingName.trim(),
-                            description: editingDesc.trim(),
-                            createdAt: Date.now(),
-                            updatedAt: Date.now()
-                          };
-                          onCharactersChange([newChar]);
-                          setEditingId(null);
-                        } else {
-                          setEditingId(null);
-                        }
-                      }}
-                      className="flex-1 px-3 py-1.5 text-xs font-medium text-white bg-slate-900 rounded-lg hover:bg-slate-800 transition"
-                    >
-                      Save
-                    </button>
-                    <button
-                      onClick={() => setEditingId(null)}
-                      className="px-3 py-1.5 text-xs font-medium text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50 transition"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </div>
+          {/* Show upgrade prompt if user doesn't have access */}
+          {!canUseCharacters ? (
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-center space-y-3">
+              <div className="w-10 h-10 mx-auto rounded-full bg-amber-100 flex items-center justify-center">
+                <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
               </div>
-            )}
-            
-            {characters.map(char => {
-              const isEditing = editingId === char.id;
-              return (
-                <div
-                  key={char.id}
-                  id={`character-${char.id}`}
-                  className={`rounded-xl border bg-white p-4 space-y-3 transition ${
-                    isEditing
-                      ? 'border-slate-300 shadow-md ring-2 ring-slate-100'
-                      : 'border-slate-200 hover:border-slate-300 hover:shadow-sm'
-                  }`}
-                >
-                  {isEditing ? (
-                    <div className="space-y-3">
-                      <div>
-                        <label className="block text-xs font-medium text-slate-700 mb-1.5">Character name</label>
-                        <input
-                          ref={inputRef}
-                          type="text"
-                          value={editingName}
-                          onChange={e => setEditingName(e.target.value)}
-                          onKeyDown={e => {
-                            if (e.key === 'Enter' && !e.shiftKey) {
-                              e.preventDefault();
-                              handleSave(char.id);
-                            }
-                            if (e.key === 'Escape') {
-                              setEditingId(null);
-                            }
-                          }}
-                          placeholder="e.g., Alice"
-                          className="w-full text-sm font-medium text-slate-900 border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-900/20 focus:border-slate-400 transition"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium text-slate-700 mb-1.5">
-                          Description <span className="text-slate-400 font-normal">(optional)</span>
-                        </label>
-                        <textarea
-                          value={editingDesc}
-                          onChange={e => setEditingDesc(e.target.value)}
-                          onKeyDown={e => {
-                            if (e.key === 'Escape') {
-                              setEditingId(null);
-                            }
-                          }}
-                          placeholder="e.g., A brave detective with a mysterious past"
-                          rows={3}
-                          maxLength={200}
-                          className="w-full text-sm text-slate-600 border border-slate-200 rounded-lg px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-slate-900/20 focus:border-slate-400 transition"
-                        />
-                        <p className="text-xs text-slate-400 mt-1 text-right">{editingDesc.length}/200</p>
-                      </div>
-                      <div className="flex items-center gap-2 pt-1">
-                        <button
-                          onClick={() => handleSave(char.id)}
-                          className="flex-1 px-3 py-1.5 text-xs font-medium text-white bg-slate-900 rounded-lg hover:bg-slate-800 transition"
-                        >
-                          Save
-                        </button>
-                        <button
-                          onClick={() => {
-                            if (!char.name) {
-                              handleDelete(char.id);
-                            } else {
-                              setEditingId(null);
-                            }
-                          }}
-                          className="px-3 py-1.5 text-xs font-medium text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50 transition"
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex-1 min-w-0">
-                        <h4 className="text-sm font-semibold text-slate-900 mb-1">{char.name || 'Unnamed character'}</h4>
-                        {char.description ? (
-                          <p className="text-xs text-slate-600 leading-relaxed">{char.description}</p>
-                        ) : (
-                          <p className="text-xs text-slate-400 italic">No description</p>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-1 flex-shrink-0">
-                        <button
-                          onClick={() => startEditing(char)}
-                          className="p-1.5 text-slate-400 hover:text-slate-700 transition rounded-lg hover:bg-slate-100"
-                          title="Edit character"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                          </svg>
-                        </button>
-                        <button
-                          onClick={() => handleDelete(char.id)}
-                          className="p-1.5 text-slate-400 hover:text-rose-500 transition rounded-lg hover:bg-rose-50"
-                          title="Delete character"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                        </button>
+              <h3 className="text-sm font-semibold text-amber-800">Character Management Upgrade</h3>
+              <p className="text-xs text-amber-700">Unlock character management features with the {requiredTier} plan.</p>
+              <button
+                onClick={() => window.location.href = '/pricing?feature=character-management'}
+                className="inline-flex items-center gap-2 px-4 py-2 text-xs font-medium text-white bg-amber-600 rounded-xl hover:bg-amber-700 transition shadow-sm"
+              >
+                Upgrade to {requiredTier}
+              </button>
+            </div>
+          ) : (
+            <>
+              {/* Empty state - only show when no characters and not editing */}
+              {characters.length === 0 && !editingId && (
+                <div className="text-center py-6 space-y-3">
+                  <div className="w-12 h-12 mx-auto rounded-full bg-slate-100 flex items-center justify-center">
+                    <svg className="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                  </div>
+                  <p className="text-sm text-slate-500">No characters yet</p>
+                  <button
+                    onClick={handleAdd}
+                    className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition shadow-sm"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
+                    Add your first character
+                  </button>
+                </div>
+              )}
+
+              {/* Character list - show when there are characters OR when editing a new one */}
+              {(characters.length > 0 || editingId) && (
+                <>
+                  {/* Show editing form for new character if editingId doesn't match any existing character */}
+                  {editingId && !characters.find(c => c.id === editingId) && (
+                    <div
+                      id={`character-${editingId}`}
+                      className="rounded-xl border border-slate-300 shadow-md ring-2 ring-slate-100 bg-white p-4 space-y-3"
+                    >
+                      <div className="space-y-3">
+                        <div>
+                          <label className="block text-xs font-medium text-slate-700 mb-1.5">Character name</label>
+                          <input
+                            ref={inputRef}
+                            type="text"
+                            value={editingName}
+                            onChange={e => setEditingName(e.target.value)}
+                            onKeyDown={e => {
+                              if (e.key === 'Enter' && !e.shiftKey) {
+                                e.preventDefault();
+                                if (editingName.trim()) {
+                                  const newChar: Character = {
+                                    id: editingId,
+                                    name: editingName.trim(),
+                                    description: editingDesc.trim(),
+                                    createdAt: Date.now(),
+                                    updatedAt: Date.now()
+                                  };
+                                  onCharactersChange([newChar]);
+                                  setEditingId(null);
+                                }
+                              }
+                              if (e.key === 'Escape') {
+                                setEditingId(null);
+                              }
+                            }}
+                            placeholder="e.g., Alice"
+                            className="w-full text-sm font-medium text-slate-900 border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-900/20 focus:border-slate-400 transition"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-slate-700 mb-1.5">
+                            Description <span className="text-slate-400 font-normal">(optional)</span>
+                          </label>
+                          <textarea
+                            value={editingDesc}
+                            onChange={e => setEditingDesc(e.target.value)}
+                            onKeyDown={e => {
+                              if (e.key === 'Escape') {
+                                setEditingId(null);
+                              }
+                            }}
+                            placeholder="e.g., A brave detective with a mysterious past"
+                            rows={3}
+                            maxLength={200}
+                            className="w-full text-sm text-slate-600 border border-slate-200 rounded-lg px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-slate-900/20 focus:border-slate-400 transition"
+                          />
+                          <p className="text-xs text-slate-400 mt-1 text-right">{editingDesc.length}/200</p>
+                        </div>
+                        <div className="flex items-center gap-2 pt-1">
+                          <button
+                            onClick={() => {
+                              if (editingName.trim()) {
+                                const newChar: Character = {
+                                  id: editingId,
+                                  name: editingName.trim(),
+                                  description: editingDesc.trim(),
+                                  createdAt: Date.now(),
+                                  updatedAt: Date.now()
+                                };
+                                onCharactersChange([newChar]);
+                                setEditingId(null);
+                              } else {
+                                setEditingId(null);
+                              }
+                            }}
+                            className="flex-1 px-3 py-1.5 text-xs font-medium text-white bg-slate-900 rounded-lg hover:bg-slate-800 transition"
+                          >
+                            Save
+                          </button>
+                          <button
+                            onClick={() => setEditingId(null)}
+                            className="px-3 py-1.5 text-xs font-medium text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50 transition"
+                          >
+                            Cancel
+                          </button>
+                        </div>
                       </div>
                     </div>
                   )}
-                </div>
-              );
-            })}
-            
-            {/* Add new character button (when there are existing characters) */}
-            {editingId === null && (
-              <button
-                onClick={handleAdd}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-slate-700 bg-slate-50 border-2 border-dashed border-slate-200 rounded-xl hover:bg-slate-100 hover:border-slate-300 transition"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                </svg>
-                Add another character
-              </button>
-            )}
-          </>
-        )}
-      </div>
+                  
+                  {characters.map(char => {
+                    const isEditing = editingId === char.id;
+                    return (
+                      <div
+                        key={char.id}
+                        id={`character-${char.id}`}
+                        className={`rounded-xl border bg-white p-4 space-y-3 transition ${
+                          isEditing
+                            ? 'border-slate-300 shadow-md ring-2 ring-slate-100'
+                            : 'border-slate-200 hover:border-slate-300 hover:shadow-sm'
+                        }`}
+                      >
+                        {isEditing ? (
+                          <div className="space-y-3">
+                            <div>
+                              <label className="block text-xs font-medium text-slate-700 mb-1.5">Character name</label>
+                              <input
+                                ref={inputRef}
+                                type="text"
+                                value={editingName}
+                                onChange={e => setEditingName(e.target.value)}
+                                onKeyDown={e => {
+                                  if (e.key === 'Enter' && !e.shiftKey) {
+                                    e.preventDefault();
+                                    handleSave(char.id);
+                                  }
+                                  if (e.key === 'Escape') {
+                                    setEditingId(null);
+                                  }
+                                }}
+                                placeholder="e.g., Alice"
+                                className="w-full text-sm font-medium text-slate-900 border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-900/20 focus:border-slate-400 transition"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-medium text-slate-700 mb-1.5">
+                                Description <span className="text-slate-400 font-normal">(optional)</span>
+                              </label>
+                              <textarea
+                                value={editingDesc}
+                                onChange={e => setEditingDesc(e.target.value)}
+                                onKeyDown={e => {
+                                  if (e.key === 'Escape') {
+                                    setEditingId(null);
+                                  }
+                                }}
+                                placeholder="e.g., A brave detective with a mysterious past"
+                                rows={3}
+                                maxLength={200}
+                                className="w-full text-sm text-slate-600 border border-slate-200 rounded-lg px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-slate-900/20 focus:border-slate-400 transition"
+                              />
+                              <p className="text-xs text-slate-400 mt-1 text-right">{editingDesc.length}/200</p>
+                            </div>
+                            <div className="flex items-center gap-2 pt-1">
+                              <button
+                                onClick={() => handleSave(char.id)}
+                                className="flex-1 px-3 py-1.5 text-xs font-medium text-white bg-slate-900 rounded-lg hover:bg-slate-800 transition"
+                              >
+                                Save
+                              </button>
+                              <button
+                                onClick={() => {
+                                  if (!char.name) {
+                                    handleDelete(char.id);
+                                  } else {
+                                    setEditingId(null);
+                                  }
+                                }}
+                                className="px-3 py-1.5 text-xs font-medium text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50 transition"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex-1 min-w-0">
+                              <h4 className="text-sm font-semibold text-slate-900 mb-1">{char.name || 'Unnamed character'}</h4>
+                              {char.description ? (
+                                <p className="text-xs text-slate-600 leading-relaxed">{char.description}</p>
+                              ) : (
+                                <p className="text-xs text-slate-400 italic">No description</p>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-1 flex-shrink-0">
+                              <button
+                                onClick={() => startEditing(char)}
+                                className="p-1.5 text-slate-400 hover:text-slate-700 transition rounded-lg hover:bg-slate-100"
+                                title="Edit character"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                              </button>
+                              <button
+                                onClick={() => handleDelete(char.id)}
+                                className="p-1.5 text-slate-400 hover:text-rose-500 transition rounded-lg hover:bg-rose-50"
+                                title="Delete character"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                  
+                  {/* Add new character button (when there are existing characters) */}
+                  {editingId === null && (
+                    <button
+                      onClick={handleAdd}
+                      className="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-slate-700 bg-slate-50 border-2 border-dashed border-slate-200 rounded-xl hover:bg-slate-100 hover:border-slate-300 transition"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                      </svg>
+                      Add another character
+                    </button>
+                  )}
+                </>
+              )}
+            </>
+          )}
+        </div>
       )}
       
       {/* Relationship Graph Modal */}
@@ -385,4 +414,3 @@ export default function CharacterPanel({
     </section>
   );
 }
-

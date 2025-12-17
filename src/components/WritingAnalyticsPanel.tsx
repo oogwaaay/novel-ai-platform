@@ -5,6 +5,7 @@ import { useProjectStore } from '../store/projectStore';
 import { fetchUsage } from '../api/authApi';
 import { useCapabilities } from '../hooks/useCapabilities';
 import UpgradePrompt from './UpgradePrompt';
+import { usePoints } from '../context/PointsContext';
 import type { UsageStats, SubscriptionLimits } from '../types/subscription';
 
 interface WritingAnalyticsPanelProps {
@@ -29,6 +30,7 @@ export default function WritingAnalyticsPanel({ className }: WritingAnalyticsPan
   const { isAuthenticated } = useAuthStore();
   const { projects } = useProjectStore();
   const { hasFeature, tier, getRequiredTier } = useCapabilities();
+  const { balance, availableBalance, loading: pointsLoading } = usePoints();
   const [usage, setUsage] = useState<{ usage: UsageStats; limits?: SubscriptionLimits } | null>(null);
   const [loading, setLoading] = useState(true);
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
@@ -199,6 +201,22 @@ export default function WritingAnalyticsPanel({ className }: WritingAnalyticsPan
             <p className="text-xs text-slate-500 mb-1">Generations</p>
             <p className="text-2xl font-semibold text-slate-900">
               {analytics.totalGenerations.toLocaleString()}
+            </p>
+          </div>
+        </div>
+        
+        {/* Points Balance */}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="bg-indigo-50 rounded-xl p-4">
+            <p className="text-xs text-indigo-500 mb-1">积分余额</p>
+            <p className="text-2xl font-semibold text-indigo-900">
+              {balance.toLocaleString()}
+            </p>
+          </div>
+          <div className="bg-indigo-50 rounded-xl p-4">
+            <p className="text-xs text-indigo-500 mb-1">可用积分</p>
+            <p className="text-2xl font-semibold text-indigo-900">
+              {availableBalance.toLocaleString()}
             </p>
           </div>
         </div>

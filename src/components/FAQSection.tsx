@@ -29,9 +29,9 @@ export default function FAQSection() {
   return (
     <div className="max-w-4xl mx-auto px-4 py-16 space-y-8">
       <header className="text-center space-y-3">
-        <p className="text-xs font-semibold tracking-[0.3em] uppercase text-indigo-600">FAQ</p>
-        <h2 className="text-3xl font-semibold text-slate-900">Frequently asked questions</h2>
-        <p className="text-slate-600">
+        <p className="text-xs font-semibold tracking-[0.3em] uppercase text-indigo-600 dark:text-indigo-400">FAQ</p>
+        <h2 className="text-3xl font-semibold text-slate-900 dark:text-white">Frequently asked questions</h2>
+        <p className="text-slate-600 dark:text-slate-300">
           Answers to the most common questions writers ask before adopting AI into their workflow.
         </p>
       </header>
@@ -42,23 +42,23 @@ export default function FAQSection() {
           return (
             <div
               key={faq.question}
-              className="border border-slate-200 rounded-3xl bg-white shadow-sm transition"
+              className="border border-slate-200 dark:border-slate-700 rounded-3xl bg-white dark:bg-slate-800 shadow-sm transition"
             >
               <button
                 className="w-full flex items-center justify-between gap-4 px-6 py-4 text-left"
                 onClick={() => setOpenIndex(isOpen ? -1 : index)}
               >
-                <span className="text-base font-semibold text-slate-900">{faq.question}</span>
+                <span className="text-base font-semibold text-slate-900 dark:text-white">{faq.question}</span>
                 <span
                   className={`text-xl font-semibold ${
-                    isOpen ? 'text-indigo-600' : 'text-slate-400'
+                    isOpen ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400 dark:text-slate-500'
                   }`}
                 >
                   {isOpen ? '–' : '+'}
                 </span>
               </button>
               {isOpen && (
-                <div className="px-6 pb-5 text-sm text-slate-600 border-t border-slate-100">
+                <div className="px-6 pb-5 text-sm text-slate-600 dark:text-slate-300 border-t border-slate-100 dark:border-slate-700">
                   {faq.answer}
                 </div>
               )}

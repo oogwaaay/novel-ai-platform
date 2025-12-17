@@ -696,27 +696,27 @@ export default function Dashboard() {
       <div className="max-w-6xl mx-auto px-4">
         {/* Migration progress indicator */}
         {migrationStatus?.inProgress && (
-          <div className="mb-6 rounded-2xl border border-indigo-200 bg-indigo-50 p-4">
+          <div className="mb-6 rounded-2xl border border-indigo-200 dark:border-indigo-900/60 bg-indigo-50 dark:bg-indigo-900/20 p-4">
             <div className="flex items-center gap-3">
               <div className="flex-shrink-0">
-                <svg className="w-5 h-5 text-indigo-600 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 text-indigo-600 dark:text-indigo-400 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                 </svg>
               </div>
               <div className="flex-1">
-                <p className="text-sm font-semibold text-indigo-900">Migrating your projects...</p>
+                <p className="text-sm font-semibold text-indigo-900 dark:text-indigo-300">Migrating your projects...</p>
                 {migrationStatus.current && (
-                  <p className="text-xs text-indigo-700 mt-1">{migrationStatus.current}</p>
+                  <p className="text-xs text-indigo-700 dark:text-indigo-400 mt-1">{migrationStatus.current}</p>
                 )}
                 {migrationStatus.total > 0 && (
                   <div className="mt-2">
-                    <div className="h-2 bg-indigo-200 rounded-full overflow-hidden">
+                    <div className="h-2 bg-indigo-200 dark:bg-indigo-900/50 rounded-full overflow-hidden">
                       <div
-                        className="h-full bg-indigo-600 transition-all"
+                        className="h-full bg-indigo-600 dark:bg-indigo-500 transition-all"
                         style={{ width: `${(migrationStatus.completed / migrationStatus.total) * 100}%` }}
                       />
                     </div>
-                    <p className="text-xs text-indigo-600 mt-1">
+                    <p className="text-xs text-indigo-600 dark:text-indigo-400 mt-1">
                       {migrationStatus.completed} / {migrationStatus.total} projects
                     </p>
                   </div>
@@ -750,12 +750,12 @@ export default function Dashboard() {
 
         {/* Upsell for analytics + version history */}
         {isAuthenticated && (!hasFeature('analytics') || !hasFeature('versionHistory')) && (
-          <GlassCard className="mt-12 p-6 border border-slate-200">
+          <GlassCard className="mt-12 p-6 border border-slate-200 dark:border-slate-700/80">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <div>
-                <p className="text-xs uppercase tracking-[0.3em] text-slate-400">Pro workspace</p>
-                <h3 className="text-xl font-semibold text-slate-900">Track every draft and unlock deep insights</h3>
-                <ul className="mt-3 text-sm text-slate-600 space-y-1.5">
+                <p className="text-xs uppercase tracking-[0.3em] text-slate-400 dark:text-slate-500">Pro workspace</p>
+                <h3 className="text-xl font-semibold text-slate-900 dark:text-white">Track every draft and unlock deep insights</h3>
+                <ul className="mt-3 text-sm text-slate-600 dark:text-slate-300 space-y-1.5">
                   {!hasFeature('versionHistory') && (
                     <li>• Version history & branching — restore any snapshot, compare scenes, merge drafts.</li>
                   )}
