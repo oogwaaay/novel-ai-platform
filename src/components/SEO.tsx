@@ -28,7 +28,12 @@ export function SEO({
   modifiedTime
 }: SEOProps) {
   const location = useLocation();
-  const fullUrl = `${SITE_URL}${location.pathname}`;
+  
+  // 确保canonical URL不包含查询参数和尾部问号
+  // 移除任何位置的问号和查询参数
+  const cleanPathname = location.pathname.replace(/\?$/, '');
+  // 确保不包含任何查询参数，只使用纯路径
+  const fullUrl = `${SITE_URL}${cleanPathname}`;
 
   useEffect(() => {
     // Update document title

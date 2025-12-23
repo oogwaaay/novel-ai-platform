@@ -76,6 +76,62 @@ export default function Home() {
       />
 
       <StoryStarterHero />
+      
+      {/* 添加相关链接区块，解决dead end问题 */}
+      <section className="py-12 px-4 bg-white/80 dark:bg-slate-800/90 backdrop-blur-md">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-2xl font-bold text-center mb-8 text-slate-900 dark:text-white">探索更多功能</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+            <a 
+              href="/generator" 
+              className="block p-6 bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-slate-800 dark:to-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 hover:shadow-md transition-all"
+            >
+              <h3 className="text-lg font-semibold mb-2 text-indigo-600 dark:text-indigo-400">AI小说生成器</h3>
+              <p className="text-slate-600 dark:text-slate-300">使用AI辅助创作完整的小说</p>
+            </a>
+            
+            <a 
+              href="/ai-prompt-generator" 
+              className="block p-6 bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-slate-800 dark:to-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 hover:shadow-md transition-all"
+            >
+              <h3 className="text-lg font-semibold mb-2 text-indigo-600 dark:text-indigo-400">AI提示生成器</h3>
+              <p className="text-slate-600 dark:text-slate-300">生成创意写作提示</p>
+            </a>
+            
+            <a 
+              href="/dashboard" 
+              className="block p-6 bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-slate-800 dark:to-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 hover:shadow-md transition-all"
+            >
+              <h3 className="text-lg font-semibold mb-2 text-indigo-600 dark:text-indigo-400">仪表板</h3>
+              <p className="text-slate-600 dark:text-slate-300">管理您的写作项目</p>
+            </a>
+            
+            <a 
+              href="/pricing" 
+              className="block p-6 bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-slate-800 dark:to-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 hover:shadow-md transition-all"
+            >
+              <h3 className="text-lg font-semibold mb-2 text-indigo-600 dark:text-indigo-400">定价方案</h3>
+              <p className="text-slate-600 dark:text-slate-300">查看我们的订阅计划</p>
+            </a>
+            
+            <a 
+              href="/resources" 
+              className="block p-6 bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-slate-800 dark:to-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 hover:shadow-md transition-all"
+            >
+              <h3 className="text-lg font-semibold mb-2 text-indigo-600 dark:text-indigo-400">资源中心</h3>
+              <p className="text-slate-600 dark:text-slate-300">获取写作技巧和指南</p>
+            </a>
+            
+            <a 
+              href="/tools/fantasy-name-generator" 
+              className="block p-6 bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-slate-800 dark:to-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 hover:shadow-md transition-all"
+            >
+              <h3 className="text-lg font-semibold mb-2 text-indigo-600 dark:text-indigo-400">奇幻名字生成器</h3>
+              <p className="text-slate-600 dark:text-slate-300">为角色和地点生成创意名字</p>
+            </a>
+          </div>
+        </div>
+      </section>
 
       <ImportDraftDialog
         isOpen={showImportDialog}
