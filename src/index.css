@@ -4,27 +4,27 @@
 
 :root {
   font-family: 'Inter', 'SF Pro Display', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-  /* 设计系统CSS变量 */
-  /* 颜色变量 */
+  /* Design system CSS variables */
+  /* Color variables */
   --bg-page: #f5f7fb;
   --bg-card: rgba(255, 255, 255, 0.85);
   --text-primary: #0f172a;
   --text-secondary: #475569;
   --accent: #111827;
   
-  /* 阴影变量 */
+  /* Shadow variables */
   --shadow-soft: 0 4px 20px rgba(0, 0, 0, 0.08);
   --shadow-medium: 0 8px 30px rgba(0, 0, 0, 0.12);
   --shadow-large: 0 16px 40px rgba(0, 0, 0, 0.16);
   
-  /* 间距变量 */
+  /* Spacing variables */
   --spacing-xs: 0.25rem;
   --spacing-sm: 0.5rem;
   --spacing-md: 1rem;
   --spacing-lg: 1.5rem;
   --spacing-xl: 2rem;
   
-  /* 圆角变量 */
+  /* Border radius variables */
   --radius-sm: 0.5rem;
   --radius-md: 0.75rem;
   --radius-lg: 1rem;

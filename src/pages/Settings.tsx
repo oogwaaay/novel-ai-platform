@@ -51,7 +51,7 @@ export default function Settings() {
         throw new Error('Failed to update profile');
       }
 
-      // 刷新用户信息
+      // Refresh user information
       const updatedUser = await fetchCurrentUser();
       if (updatedUser) {
         setUser(updatedUser);

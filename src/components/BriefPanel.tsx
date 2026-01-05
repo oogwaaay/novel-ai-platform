@@ -258,7 +258,7 @@ export default function BriefPanel({
               </button>
               {(tier === 'free' || tier === 'starter') && (
                 <p className="mt-1 text-xs text-center text-slate-500 dark:text-slate-400">
-                  {BILLING_CONFIG.GENERATE_CHAPTER.points} 💧 积分
+                  {BILLING_CONFIG.GENERATE_CHAPTER.points} 💧 points
                 </p>
               )}
             </div>
@@ -272,7 +272,7 @@ export default function BriefPanel({
               </button>
               {(tier === 'free' || tier === 'starter') && (
                 <p className="mt-1 text-xs text-center text-slate-500 dark:text-slate-400">
-                  {BILLING_CONFIG.GENERATE_OUTLINE.points} 💧 积分
+                  {BILLING_CONFIG.GENERATE_OUTLINE.points} 💧 points
                 </p>
               )}
             </div>

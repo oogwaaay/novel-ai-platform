@@ -28,13 +28,13 @@ export default function Header() {
         <nav className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-10">
             <Link to="/" className="flex items-center gap-2">
-              {/* 可见的新品牌 Logo 图片 */}
+              {/* Visible new brand logo image */}
               <img
                 src="/brand1090.png"
                 alt="Scribely – novel ai-powered writing workspace"
                 className="h-16 w-auto sm:h-12"
               />
-              {/* 仅供搜索引擎和读屏软件使用的关键词文本（无障碍友好） */}
+              {/* Keywords text for search engines and screen readers only (accessible-friendly) */}
               <span className="sr-only">
                 Scribely – novel ai novel generator · AI-powered writing workspace
               </span>

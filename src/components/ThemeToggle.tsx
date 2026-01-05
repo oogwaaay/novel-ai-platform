@@ -5,18 +5,18 @@ type ViewMode = 'normal' | 'reading';
 
 const ThemeToggle = () => {
   const [theme, setTheme] = useState<Theme>(() => {
-    // 从localStorage获取主题，默认使用浅色主题
+    // Get theme from localStorage, default to light theme
     const savedTheme = localStorage.getItem('theme');
     return (savedTheme as Theme) || 'light';
   });
 
   const [viewMode, setViewMode] = useState<ViewMode>(() => {
-    // 从localStorage获取视图模式，默认使用普通模式
+    // Get view mode from localStorage, default to normal mode
     const savedMode = localStorage.getItem('viewMode');
     return (savedMode as ViewMode) || 'normal';
   });
 
-  // 切换主题
+  // Toggle theme
   const toggleTheme = () => {
     const newTheme = theme === 'light' ? 'dark' : 'light';
     setTheme(newTheme);
@@ -24,7 +24,7 @@ const ThemeToggle = () => {
     updateThemeAndViewMode(newTheme, viewMode);
   };
 
-  // 切换视图模式（普通/阅读）
+  // Toggle view mode (normal/reading)
   const toggleViewMode = () => {
     const newMode = viewMode === 'normal' ? 'reading' : 'normal';
     setViewMode(newMode);
@@ -32,19 +32,19 @@ const ThemeToggle = () => {
     updateThemeAndViewMode(theme, newMode);
   };
 
-  // 更新主题和视图模式
+  // Update theme and view mode
   const updateThemeAndViewMode = (currentTheme: Theme, currentViewMode: ViewMode) => {
     document.documentElement.setAttribute('data-theme', currentTheme);
     document.documentElement.setAttribute('data-view-mode', currentViewMode);
     
-    // 使用Tailwind的dark:类，不再需要手动更新CSS变量
+    // Use Tailwind's dark: class, no need to manually update CSS variables
     if (currentTheme === 'dark') {
       document.documentElement.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark');
     }
     
-    // Reading mode variables (保留阅读模式的特殊处理)
+    // Reading mode variables (keep special handling for reading mode)
     const root = document.documentElement;
     if (currentViewMode === 'reading') {
       // Increase line height and font size for better readability
@@ -57,7 +57,7 @@ const ThemeToggle = () => {
     }
   };
 
-  // 初始化主题和视图模式
+  // Initialize theme and view mode
   useEffect(() => {
     updateThemeAndViewMode(theme, viewMode);
   }, [theme, viewMode]);

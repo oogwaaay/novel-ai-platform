@@ -9,7 +9,7 @@ import { updateSubscription } from '../api/authApi';
 import { CREEM_PRODUCT_IDS } from '../config/products';
 import type { SubscriptionTier } from '../types/subscription';
 import LoginModal from '../components/LoginModal';
-// 使用环境变量获取 API 基础 URL，开发环境为空字符串(走代理)，生产环境为 Railway 域名
+// Use environment variable to get API base URL, empty string for development (use proxy), Railway domain for production
 const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
 export default function Pricing() {

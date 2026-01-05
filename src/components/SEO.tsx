@@ -29,10 +29,10 @@ export function SEO({
 }: SEOProps) {
   const location = useLocation();
   
-  // 确保canonical URL不包含查询参数和尾部问号
-  // 移除任何位置的问号和查询参数
+  // Ensure canonical URL does not contain query parameters and trailing question marks
+  // Remove any question marks and query parameters
   const cleanPathname = location.pathname.replace(/\?$/, '');
-  // 确保不包含任何查询参数，只使用纯路径
+  // Ensure no query parameters are included, use only the pure path
   const fullUrl = `${SITE_URL}${cleanPathname}`;
 
   useEffect(() => {

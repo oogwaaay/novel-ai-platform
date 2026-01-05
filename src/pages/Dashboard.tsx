@@ -112,7 +112,7 @@ export default function Dashboard() {
     loadProjects();
   }, [isAuthenticated, setProjects, location.pathname, location.key]);
   
-  // 额外监听：当从其他页面返回时，强制刷新项目列表
+  // Additional listener: force refresh project list when returning from other pages
   useEffect(() => {
     if (location.pathname === '/dashboard' && isAuthenticated) {
       const refreshProjects = async () => {
@@ -198,18 +198,18 @@ export default function Dashboard() {
         snapshot
       }));
 
-      // 去重：如果ID相同，优先保留后端项目
+      // Deduplicate: if IDs are the same, prioritize backend projects
       const combined = [...backendProjectsList, ...localProjectsList];
       const uniqueProjects = combined.reduce((acc, project) => {
         const existing = acc.find(p => p.id === project.id);
         if (!existing) {
           acc.push(project);
         } else if (existing.isBackend === false && project.isBackend === true) {
-          // 如果存在的是本地项目而当前是后端项目，则替换
+          // If existing is local project and current is backend project, replace
           const index = acc.indexOf(existing);
           acc[index] = project;
         }
-        // 如果存在的是后端项目，则保留现有的，不添加新的
+        // If existing is backend project, keep existing and don't add new one
         return acc;
       }, [] as CombinedProject[]);
 
@@ -580,23 +580,23 @@ export default function Dashboard() {
         const newProject = await createProject(data);
         console.log('[Dashboard] Project created successfully:', newProject);
         
-        // 更新本地状态 - 确保项目列表包含新项目
+        // Update local state - ensure project list includes new project
         setCurrentProject(newProject);
         
-        // 刷新项目列表以确保新项目显示
+        // Refresh project list to ensure new project is displayed
         try {
           const backendProjects = await getProjects();
           console.log('[Dashboard] Refreshed projects after creation:', backendProjects.length);
           setProjects(backendProjects);
         } catch (error) {
           console.error('[Dashboard] Failed to refresh projects:', error);
-          // 如果刷新失败，至少添加到当前列表
+          // If refresh fails, at least add to current list
           const updatedProjects = [...projects, newProject];
           console.log('[Dashboard] Added project to local list:', updatedProjects.length);
           setProjects(updatedProjects);
         }
         
-        // 跳转时携带 new=true 参数和 idea（如果提供）
+        // Navigate with new=true parameter and idea (if provided)
         const params = new URLSearchParams({
           project: newProject.id,
           new: 'true'
@@ -611,22 +611,22 @@ export default function Dashboard() {
       } catch (error) {
         console.error('[Dashboard] Failed to create project:', error);
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-        alert(`项目创建失败: ${errorMessage}。请检查控制台获取详细信息。`);
+        alert(`Project creation failed: ${errorMessage}. Please check console for detailed information.`);
         throw error; // Re-throw to let ProjectCreationWizard handle it
       }
     } else {
-      // 如果未登录，保存数据并显示登录模态框
+      // If not logged in, save data and show login modal
       console.log('[Dashboard] User not authenticated, showing login modal');
       setPendingProjectData(data);
       setShowLoginModal(true);
     }
   };
 
-  // 登录成功后的处理函数
+  // Handler function after successful login
   const handleLoginSuccess = async () => {
     setShowLoginModal(false);
     
-    // 如果有待创建的项目数据，登录后自动创建
+    // If there is pending project data, automatically create after login
     if (pendingProjectData) {
       const data = pendingProjectData;
       setPendingProjectData(null);
@@ -636,7 +636,7 @@ export default function Dashboard() {
         const newProject = await createProject(data);
         setCurrentProject(newProject);
         
-        // 刷新项目列表
+        // Refresh project list
         try {
           const backendProjects = await getProjects();
           setProjects(backendProjects);
@@ -645,7 +645,7 @@ export default function Dashboard() {
           setProjects([...projects, newProject]);
         }
         
-        // 跳转到 Generator
+        // Navigate to Generator
         const params = new URLSearchParams({
           project: newProject.id,
           new: 'true'

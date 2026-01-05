@@ -47,7 +47,7 @@ function OAuthCallback() {
       // Store token in localStorage
       localStorage.setItem('auth_token', token);
       
-      // ✅ P0: 获取用户信息（包括头像）
+      // P0: Fetch user information (including avatar)
       fetchCurrentUser()
         .then((user) => {
           if (user) {

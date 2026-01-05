@@ -3,10 +3,10 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { SEO } from '../components/SEO';
 import { PrimaryButton } from '../components/ui/PrimaryButton';
 
-// 使用环境变量获取 API 基础 URL
+// Use environment variable to get API base URL
 const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
-// 定义页面状态类型
+// Define page state type
 type PageState = 'loading' | 'success' | 'error';
 
 export default function PaymentSuccess() {
@@ -15,25 +15,25 @@ export default function PaymentSuccess() {
   const [pageState, setPageState] = useState<PageState>('loading');
   const [sessionId, setSessionId] = useState<string | null>(null);
 
-  // 第一步：获取 URL 参数并验证支付状态
+  // Step 1: Get URL parameters and verify payment status
   useEffect(() => {
-    // 提取 checkout_id 参数
+    // Extract checkout_id parameter
     const params = new URLSearchParams(location.search);
     const checkoutId = params.get('checkout_id');
     setSessionId(checkoutId);
 
-    // 如果 URL 里没有 ID，继续显示 Loading 状态，等待一段时间后再检查
+    // If no ID in URL, continue showing Loading state and wait for a while before checking again
     if (!checkoutId) {
-      // 有时跳转会有延迟，等待 1 秒后再次检查
+      // Sometimes there is a delay in redirection, wait 1 second and check again
       const timer = setTimeout(() => {
-        // 再次检查 URL 参数
+        // Check URL parameters again
         const newParams = new URLSearchParams(window.location.search);
         const newCheckoutId = newParams.get('checkout_id');
         if (newCheckoutId) {
           setSessionId(newCheckoutId);
           verifyPayment(newCheckoutId);
         } else {
-          // 如果还是没有 ID，才显示错误
+          // If still no ID, then show error
           setPageState('error');
         }
       }, 1000);
@@ -41,7 +41,7 @@ export default function PaymentSuccess() {
       return () => clearTimeout(timer);
     }
 
-    // 第二步：调用后端 API 验证支付状态
+    // Step 2: Call backend API to verify payment status
         const verifyPayment = async (id: string) => {
           try {
             const response = await fetch(`${API_BASE_URL}/api/creem/check-status?checkout_id=${id}`);
@@ -62,7 +62,7 @@ export default function PaymentSuccess() {
     verifyPayment(checkoutId);
   }, [location.search]);
 
-  // 处理按钮点击
+  // Handle button click
   const handleDashboardClick = () => {
     navigate('/dashboard');
   };

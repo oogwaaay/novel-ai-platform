@@ -81,7 +81,7 @@ const getCollaborationBaseUrl = () => {
   if (typeof window !== 'undefined') {
     return window.location.origin.replace(/\/$/, '');
   }
-  // 生产环境使用环境变量，开发环境使用 localhost
+  // Use environment variable for production, localhost for development
   return import.meta.env.VITE_BACKEND_URL || 
     (import.meta.env.DEV ? 'http://localhost:3001' : '');
 };
@@ -668,7 +668,7 @@ export default function Generator() {
   );
 
   const handleLockedSelectionAttempt = useCallback((lock: { userName?: string }) => {
-    setLockWarning(`该段已被 ${lock.userName || '其他成员'} 锁定，等待对方释放。`);
+    setLockWarning(`This section is locked by ${lock.userName || 'another member'}, waiting for release.`);
   }, []);
 
   const enhanceParticipants = useCallback(
@@ -970,9 +970,9 @@ export default function Generator() {
         const requiredPoints = BILLING_CONFIG.GENERATE_OUTLINE.points;
         setRemainingPoints(error.response?.data?.remainingPoints || 0);
         setRequiredPoints(requiredPoints);
-        setExhaustedAction('扩展创意');
+        setExhaustedAction('Expand Idea');
         setShowPointsExhaustedModal(true);
-        setError('积分不足，无法扩展创意。');
+        setError('Insufficient points, unable to expand idea.');
       } else {
         setError('Failed to expand idea. Please try again.');
       }
@@ -1531,15 +1531,15 @@ export default function Generator() {
       }
     }
     
-    // 处理 project 参数（项目加载）
+    // Handle project parameter (project loading)
     const projectId = searchParams.get('project');
     if (projectId) {
-      // 项目加载逻辑在另一个 useEffect 中处理，这里跳过
+      // Project loading logic is handled in another useEffect, skip here
       prefillAppliedRef.current = true;
       return;
     }
     
-    // 处理从 AIPromptGenerator 跳转过来的 prompt 参数
+    // Handle prompt parameter redirected from AIPromptGenerator
     const incomingPrompt = searchParams.get('prompt');
     if (incomingPrompt) {
       setIdea(incomingPrompt);
@@ -1548,7 +1548,7 @@ export default function Generator() {
       return;
     }
     
-    // 处理 hero 和 flow-guide 入口
+    // Handle hero and flow-guide entry
     if (entry !== 'hero' && entry !== 'flow-guide') return;
 
     const incomingIdea = searchParams.get('idea');
@@ -1593,7 +1593,7 @@ export default function Generator() {
     prefillAppliedRef.current = true;
   }, [idea]);
 
-  // 检查登录状态：如果有项目 ID 但用户未登录，显示登录模态框
+  // Check login status: if there is a project ID but user is not logged in, show login modal
   useEffect(() => {
     const projectId = searchParams.get('project');
     
@@ -1603,7 +1603,7 @@ export default function Generator() {
     }
   }, [searchParams.get('project'), isAuthenticated]);
 
-  // 加载项目数据（当 URL 中有 project 参数时）
+  // Load project data (when URL has project parameter)
   useEffect(() => {
     const projectId = searchParams.get('project');
     const isNewProject = searchParams.get('new') === 'true';
@@ -1612,15 +1612,15 @@ export default function Generator() {
     
     if (!projectId) return;
     
-    // 如果未登录，不加载项目数据，但引导仍然可以显示（基于 URL 参数）
+    // If not logged in, don't load project data, but the guide can still be displayed (based on URL parameters)
     if (!isAuthenticated) {
       if (import.meta.env.DEV) console.log('[Generator] User not authenticated, skipping project load');
       return;
     }
     
-    // 如果 currentProject 已设置且 ID 匹配，直接填充数据
+    // If currentProject is already set and ID matches, directly fill data
     if (currentProject?.id === projectId) {
-      // 确保数据已填充（避免重复填充）
+      // Ensure data is filled (avoid duplicate filling)
       if (currentProject.genre && genre !== currentProject.genre) setGenre(currentProject.genre);
       if (currentProject.length && length !== currentProject.length) setLength(currentProject.length);
       if (currentProject.language && language !== currentProject.language) setLanguage(currentProject.language);
@@ -1629,16 +1629,16 @@ export default function Generator() {
         setChapters(currentProject.chapters);
         setActiveChapterIndex(0);
       }
-      // 从 URL 参数中获取 idea（如果创建项目时提供了）
+      // Get idea from URL parameters (if provided when creating project)
       const urlIdea = searchParams.get('idea');
       if (urlIdea && idea !== urlIdea) {
         setIdea(urlIdea);
       }
-      // 注意：引导的显示由组件渲染逻辑控制
+      // Note: Guide display is controlled by component rendering logic
       return;
     }
     
-    // 否则从后端加载项目
+    // Otherwise load project from backend
     let cancelled = false;
     (async () => {
       try {
@@ -1679,7 +1679,7 @@ export default function Generator() {
       } catch (err) {
         if (cancelled) return;
         console.error('[Generator] Failed to load project:', err);
-        setPrefillNotice('项目加载失败，请检查网络连接或刷新页面重试。');
+        setPrefillNotice('Project loading failed. Please check your network connection or refresh the page to try again.');
       }
     })();
     
@@ -1688,12 +1688,12 @@ export default function Generator() {
     };
   }, [searchParams, isAuthenticated, currentProject?.id, setCurrentProject]);
 
-  // 保持URL与currentProject同步：如果currentProject存在但URL中没有project参数，添加它
+  // Keep URL synchronized with currentProject: if currentProject exists but URL has no project parameter, add it
   useEffect(() => {
     if (!isAuthenticated || !currentProject?.id) return;
     const projectId = searchParams.get('project');
     if (currentProject.id && projectId !== currentProject.id) {
-      // 如果URL中没有project参数或参数不匹配，更新URL
+      // If URL has no project parameter or parameter doesn't match, update URL
       const newParams = new URLSearchParams(searchParams);
       newParams.set('project', currentProject.id);
       navigate(`/generator?${newParams.toString()}`, { replace: true });
@@ -2534,7 +2534,7 @@ export default function Generator() {
         }
       } catch (error) {
         console.error('[Generator] Failed to update comment status', error);
-        alert('无法更新评论状态，请稍后再试。');
+        alert('Unable to update comment status, please try again later.');
       }
     },
     [collabComments, currentProject?.id, isCollabConnected, user]
@@ -2686,9 +2686,9 @@ export default function Generator() {
 
     socket.on('collab:lock-rejected', ({ reason, conflict }) => {
       if (reason === 'locked' && conflict) {
-        setLockWarning(`该段已被 ${conflict.userName || '其他成员'} 锁定`);
+        setLockWarning(`This section is locked by ${conflict.userName || 'another member'}`);
       } else {
-        setLockWarning('无法获取锁，请稍候重试');
+        setLockWarning('Unable to acquire lock, please try again later');
       }
     });
 
@@ -2868,9 +2868,9 @@ export default function Generator() {
         const requiredPoints = idea ? BILLING_CONFIG.GENERATE_CHAPTER.points : BILLING_CONFIG.GENERATE_OUTLINE.points;
         setRemainingPoints(err.response?.data?.remainingPoints || 0);
         setRequiredPoints(requiredPoints);
-        setExhaustedAction(idea ? '创建小说' : '生成大纲');
+        setExhaustedAction(idea ? 'Create Novel' : 'Generate Outline');
         setShowPointsExhaustedModal(true);
-        setError('积分不足，无法创建小说。');
+        setError('Insufficient points, unable to create novel.');
       } else {
         setError(err.message || 'Failed to generate novel');
       }
@@ -2967,9 +2967,9 @@ export default function Generator() {
         const requiredPoints = BILLING_CONFIG.GENERATE_OUTLINE.points;
         setRemainingPoints(err.response?.data?.remainingPoints || 0);
         setRequiredPoints(requiredPoints);
-        setExhaustedAction('生成大纲');
+        setExhaustedAction('Generate Outline');
         setShowPointsExhaustedModal(true);
-        setError('积分不足，无法生成大纲。');
+        setError('Insufficient points, unable to generate outline.');
       } else {
         setError(err.message || 'Failed to generate outline');
       }
@@ -2982,14 +2982,14 @@ export default function Generator() {
     }
   };
 
-  // 登录成功后的处理
+  // Handle login success
   const handleLoginSuccess = () => {
     setShowLoginModal(false);
-    // 登录成功后，项目加载逻辑会自动触发（因为 isAuthenticated 变化）
-    // 重新加载项目数据
+    // After login success, project loading logic will automatically trigger (because isAuthenticated changed)
+    // Reload project data
     const projectId = searchParams.get('project');
     if (projectId) {
-      // 触发项目重新加载
+      // Trigger project reload
       window.location.reload();
     }
   };

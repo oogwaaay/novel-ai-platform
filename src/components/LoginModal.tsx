@@ -154,9 +154,9 @@ export default function LoginModal({ open, onClose, onSuccess }: LoginModalProps
               type="button"
               onClick={() => {
                 let baseUrl = import.meta.env.VITE_API_URL || '';
-                // 如果是相对路径，使用后端服务器 URL（避免被 React Router 拦截）
+                // If it's a relative path, use backend server URL (avoid React Router interception)
                 if (baseUrl.startsWith('/')) {
-                  // 生产环境使用环境变量，开发环境使用 localhost
+                  // Use environment variable for production, localhost for development
                   const backendUrl = import.meta.env.VITE_BACKEND_URL || 
                     (import.meta.env.DEV ? 'http://localhost:3001' : window.location.origin);
                   baseUrl = `${backendUrl}${baseUrl}`;
@@ -189,9 +189,9 @@ export default function LoginModal({ open, onClose, onSuccess }: LoginModalProps
               type="button"
               onClick={() => {
                 let baseUrl = import.meta.env.VITE_API_URL || '';
-                // 如果是相对路径，使用后端服务器 URL（避免被 React Router 拦截）
+                // If it's a relative path, use backend server URL (avoid React Router interception)
                 if (baseUrl.startsWith('/')) {
-                  // 生产环境使用环境变量，开发环境使用 localhost
+                  // Use environment variable for production, localhost for development
                   const backendUrl = import.meta.env.VITE_BACKEND_URL || 
                     (import.meta.env.DEV ? 'http://localhost:3001' : window.location.origin);
                   baseUrl = `${backendUrl}${baseUrl}`;
